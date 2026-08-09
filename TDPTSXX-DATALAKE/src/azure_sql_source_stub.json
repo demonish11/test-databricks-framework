@@ -1,0 +1,41 @@
+{
+  "source_name": "azure_sql_tdps",
+  "jdbc": {
+    "database": "azure_sql",
+    "server_by_env": {
+      "dev": "cutdasqltdps01.database.windows.net",
+      "tst": "cuttasqltdps01.database.windows.net",
+      "stg": "",
+      "prd": ""
+    },
+    "database_by_env": {
+      "dev": "cutdsqdbtdps01",
+      "tst": "cuttsqdbtdps01",
+      "stg": "",
+      "prd": ""
+    },
+    "port": 1433,
+    "driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+    "options": {
+      "fetchsize": "10000"
+    }
+  },
+  "authentication": {
+    "mode": "service_principal",
+    "tenant_id": "623cac68-b5d0-45f1-9109-3122c3974cc9",
+    "client_id_by_env": {
+      "dev": "497ec6d8-ef44-4d64-8321-ea6cd600fab9",
+      "tst": "a032ac55-96d1-483e-ab54-121839d79e47",
+      "stg": "",
+      "prd": ""
+    },
+    "secret_scope_by_env": {
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "",
+      "prd": ""
+    },
+    "secret_key": "database-sp-sec",
+    "token_scope": "https://database.windows.net/.default"
+  }
+}

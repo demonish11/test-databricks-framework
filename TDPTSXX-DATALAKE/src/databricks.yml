@@ -102,6 +102,20 @@ resources:
       queue:
         enabled: true
 
+    S0TDPSXX_AzureSql_Hourly_Extraction:
+      name: 'S0TDPSXX Azure SQL Hourly Extraction'
+      tasks:
+      - task_key: S0TDPSXX_AzureSql_Hourly_Extraction
+        notebook_task:
+          notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+          source: WORKSPACE
+        job_cluster_key: Compute_S0TDPSXX_AzureSql_Hourly_Extract
+        libraries:
+        - maven:
+            coordinates: com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11
+      queue:
+        enabled: true
+
 
 targets:
   DEV_East:
@@ -157,6 +171,52 @@ targets:
               enable_elastic_disk: true
               data_security_mode: USER_ISOLATION
               num_workers: 8
+          timeout_seconds: 86400
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+
+        S0TDPSXX_AzureSql_Hourly_Extraction:
+          name: 'S0TDPSXX Azure SQL Hourly Extraction'
+          schedule:
+            quartz_cron_expression: 12 15 * * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_AzureSql_Hourly_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_S0TDPSXX_AzureSql_Hourly_Extract
+            libraries:
+            - maven:
+                coordinates: com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11
+          job_clusters:
+          - job_cluster_key: Compute_S0TDPSXX_AzureSql_Hourly_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                DataMapping_File: ./datamapping_AzureSql_Hourly.json
+                Databricks_Env: ${var.Databricks_Env}
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 4
           timeout_seconds: 86400
           queue:
             enabled: true

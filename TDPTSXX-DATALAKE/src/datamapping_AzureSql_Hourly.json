@@ -1,0 +1,92 @@
+{
+  "SiteOverrideStandard": {
+    "Entity": "SiteOverrideStandard",
+    "DBType": "AzureSQL",
+    "Driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+    "Source_Connection_Config": "./azure_sql_source_stub.json",
+    "SQL": {
+      "dev": "SELECT SiteOverrideStandardID, FacilityAlias, ProductCategory, ReceivingType, PreStop, PostStop, Unload, Reload, EffectiveStartDate, EffectiveEndDate, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.SiteOverrideStandard WHERE 1=1"
+    },
+    "Time_Grain": "HOURLY",
+    "Incremental_Load_Flag": "Y",
+    "SourceIncremental_Identifier_Col": "UpdatedDateTime",
+    "UCIncremental_Identifier_Col": "UpdatedDateTime",
+    "PrimaryKey": "SiteOverrideStandardID",
+    "Dedupe_Key_Columns": "SiteOverrideStandardID",
+    "Dedupe_Order_Columns": "UpdatedDateTime,CreatedDateTime",
+    "Raw_Merge_On_Primary_Key": "Y",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/Facility/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "SiteOverrideStandard",
+    "Target_UC_Schema": "transportation_facility_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    }
+  },
+  "ADGroup": {
+    "Entity": "ADGroup",
+    "DBType": "AzureSQL",
+    "Driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+    "Source_Connection_Config": "./azure_sql_source_stub.json",
+    "SQL": {
+      "dev": "SELECT ADGroupID, ADGroupName, IsActive, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.ADGroup WHERE 1=1"
+    },
+    "Time_Grain": "HOURLY",
+    "Incremental_Load_Flag": "Y",
+    "SourceIncremental_Identifier_Col": "UpdatedDateTime",
+    "UCIncremental_Identifier_Col": "UpdatedDateTime",
+    "PrimaryKey": "ADGroupID",
+    "Dedupe_Key_Columns": "ADGroupID",
+    "Dedupe_Order_Columns": "UpdatedDateTime,CreatedDateTime",
+    "Raw_Merge_On_Primary_Key": "Y",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/Reference/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "ADGroup",
+    "Target_UC_Schema": "transportation_reference_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    }
+  }
+}
