@@ -1,0 +1,114 @@
+﻿targets:
+  # TODO: DEV host, SPN, catalogs, and config paths are filled for the extraction POC.
+  DEV_East:
+    default: true
+    workspace:
+      host: https://adb-3618393276190872.12.azuredatabricks.net/
+      root_path: /Workspace/Shared/S0TDPSXX-DBWS-DataLoad
+    run_as:
+      service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+    variables:
+      Databricks_Env: dev
+      Oracle_Jdbc_Jar_Path: /Volumes/ent_dtlk_dev/volumes/jdbc-jars/ojdbc8.jar
+      Loadtracker_Target_Catalog: ent_dtlk_dev
+      Loadtracker_Target_Schema: monitoring
+      Loadtracker_Target_Table: load_tracking_s0transportxxx
+      Daily_Source_Config_Path: ${workspace.root_path}/files/src/configs/oracle_extract_daily.json
+      Transactional_Source_Config_Path: ${workspace.root_path}/files/src/configs/oracle_extract_transactional.json
+      Initial_Load_Source_Config_Path: ${workspace.root_path}/files/src/configs/oracle_extract_initial_load.json
+      Historical_Source_Config_Path: ${workspace.root_path}/files/src/configs/oracle_extract_historical.json
+      Target_Config_Path: ${workspace.root_path}/files/src/configs/azure_sql_target_stub.json
+    resources:
+      jobs:
+        TDPS_Mod_Initial_Load:
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+        TDPS_Mod_Transactional_Load:
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+        TDPS_Mod_Daily_Load:
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+        TDPS_Mod_Historical_Backfill:
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+        TDPS_Mod_Daily_Sequential_Runner:
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+        TDPS_Mod_Transactional_Sequential_Runner:
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+
+  DEV_Central:
+    workspace:
+      host: https://adb-840646084492194.14.azuredatabricks.net/
+      root_path: /Workspace/Shared/S0TDPSXX-DBWS-DataLoad
+    run_as:
+      service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+    variables:
+      Databricks_Env: dev
+      Oracle_Jdbc_Jar_Path: /Volumes/entc_dtlk_dev/volumes/jdbc-jars/ojdbc8.jar
+      Loadtracker_Target_Catalog: entc_dtlk_dev
+      Loadtracker_Target_Schema: monitoring
+      Loadtracker_Target_Table: load_tracking_s0transportxxx
+      Daily_Source_Config_Path: ${workspace.root_path}/files/src/configs/oracle_extract_daily.json
+      Transactional_Source_Config_Path: ${workspace.root_path}/files/src/configs/oracle_extract_transactional.json
+      Initial_Load_Source_Config_Path: ${workspace.root_path}/files/src/configs/oracle_extract_initial_load.json
+      Historical_Source_Config_Path: ${workspace.root_path}/files/src/configs/oracle_extract_historical.json
+      Target_Config_Path: ${workspace.root_path}/files/src/configs/azure_sql_target_stub.json
+    resources:
+      jobs:
+        TDPS_Mod_Initial_Load:
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+        TDPS_Mod_Transactional_Load:
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+        TDPS_Mod_Daily_Load:
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+        TDPS_Mod_Historical_Backfill:
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+        TDPS_Mod_Daily_Sequential_Runner:
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+        TDPS_Mod_Transactional_Sequential_Runner:
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE

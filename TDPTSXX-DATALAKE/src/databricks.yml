@@ -1,0 +1,1271 @@
+bundle:
+  name: DataLoad
+
+variables:
+  Databricks_Env:
+  Loadtracker_Target_Catalog:
+  Loadtracker_Target_Schema:
+  Loadtracker_Target_Table:
+
+
+resources:
+  jobs:
+    S0TDPSXX_Hourly_Extraction:
+      name: 'S0TDPSXX Hourly Extraction'
+      tasks:
+      - task_key: S0TDPSXX_Hourly_Extraction
+        notebook_task:
+          notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+          source: WORKSPACE
+        job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+        libraries:
+        - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+      queue:
+        enabled: true
+
+    S0TDPSXX_Hourly_Backfill:
+      name: 'S0TDPSXX Hourly Backfill'
+      tasks:
+      - task_key: S0TDPSXX_Hourly_Backfill
+        notebook_task:
+          notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper_Backfill
+          source: WORKSPACE
+        job_cluster_key: Compute_S0TDPSXX_Hourly_Backfill
+        libraries:
+        - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+      job_clusters:
+      - job_cluster_key: Compute_S0TDPSXX_Hourly_Backfill
+        new_cluster:
+          cluster_name: ""
+          spark_version: 14.3.x-scala2.12
+          azure_attributes:
+            first_on_demand: 1
+            availability: SPOT_WITH_FALLBACK_AZURE
+            spot_bid_max_price: -1
+          node_type_id: Standard_D4ds_v5
+          spark_env_vars:
+            PYSPARK_PYTHON: /databricks/python3/bin/python3
+            Databricks_Env: ${var.Databricks_Env}
+            Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+            Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+            Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+            DataMapping_File: ./datamapping_Hourly_Backfill.json
+          enable_elastic_disk: true
+          data_security_mode: USER_ISOLATION
+          num_workers: 8
+      timeout_seconds: 86400
+      queue:
+        enabled: true
+
+    S0TDPSXX_Daily_Extraction:
+      name: 'S0TDPSXX Daily Extraction'
+      tasks:
+      - task_key: S0TDPSXX_Daily_Extraction
+        notebook_task:
+          notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+          source: WORKSPACE
+        job_cluster_key: Compute_TDPS_Daily_Extract
+        libraries:
+        - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+      queue:
+        enabled: true
+
+    S0TDPSXX_Trip_Delete_Detection:
+      name: 'S0TDPSXX Trip Delete Detection'
+      tasks:
+      - task_key: S0TDPSXX_Trip_Delete_Detection
+        notebook_task:
+          notebook_path: /Workspace/S0TDPSXX/files/src/Trip_Delete_Detection
+          source: WORKSPACE
+        job_cluster_key: Compute_TDPS_Trip_Delete_Detection
+        libraries:
+        - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+      job_clusters:
+      - job_cluster_key: Compute_TDPS_Trip_Delete_Detection
+        new_cluster:
+          cluster_name: ""
+          spark_version: 14.3.x-scala2.12
+          azure_attributes:
+            first_on_demand: 1
+            availability: SPOT_WITH_FALLBACK_AZURE
+            spot_bid_max_price: -1
+          node_type_id: Standard_D4ds_v5
+          spark_env_vars:
+            PYSPARK_PYTHON: /databricks/python3/bin/python3
+            Databricks_Env: ${var.Databricks_Env}
+            Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+            Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+            Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+          enable_elastic_disk: true
+          data_security_mode: USER_ISOLATION
+          num_workers: 8
+      queue:
+        enabled: true
+
+
+targets:
+  DEV_East:
+    default: true
+    workspace:
+      host: https://adb-3618393276190872.12.azuredatabricks.net/
+      root_path: /Workspace/S0TDPSXX
+    run_as:
+      service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+    variables:
+      Databricks_Env: dev
+      Loadtracker_Target_Catalog: ent_dtlk_dev
+      Loadtracker_Target_Schema: monitoring
+      Loadtracker_Target_Table: load_tracking_s0transportxxx
+    resources:
+      jobs:
+        S0TDPSXX_Hourly_Extraction:
+          name: 'S0TDPSXX Hourly Extraction'
+          schedule:
+            quartz_cron_expression: 12 15 * * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Hourly_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                DataMapping_File: ./datamapping_Hourly.json
+                Databricks_Env: ${var.Databricks_Env}
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          timeout_seconds: 86400
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+        
+        S0TDPSXX_Daily_Extraction:
+          name: 'S0TDPSXX Daily Extraction'
+          schedule:
+            quartz_cron_expression: 9 0 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Daily_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_TDPS_Daily_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TDPS_Daily_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+                DataMapping_File: "./datamapping_Daily.json"
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+
+        S0TDPSXX_Trip_Delete_Detection:
+          name: 'S0TDPSXX Trip Delete Detection'
+          schedule:
+            quartz_cron_expression: 0 30 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Trip_Delete_Detection
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Trip_Delete_Detection
+              source: WORKSPACE
+            job_cluster_key: Compute_TDPS_Trip_Delete_Detection
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TDPS_Trip_Delete_Detection
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+        
+  DEV_Central:
+    default: false
+    workspace:
+      host: https://adb-840646084492194.14.azuredatabricks.net/
+      root_path: /Workspace/S0TDPSXX
+    run_as:
+      service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+    variables:
+      Databricks_Env: dev
+      Loadtracker_Target_Catalog: entc_dtlk_dev
+      Loadtracker_Target_Schema: monitoring
+      Loadtracker_Target_Table: load_tracking_s0transportxxx
+    resources:
+      jobs:
+        S0TDPSXX_Hourly_Extraction:
+          name: 'S0TDPSXX Hourly Extraction'
+          schedule:
+            quartz_cron_expression: 12 15 * * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Hourly_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                DataMapping_File: ./datamapping_Hourly.json
+                Databricks_Env: ${var.Databricks_Env}
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          timeout_seconds: 86400
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+        
+        S0TDPSXX_Daily_Extraction:
+          name: 'S0TDPSXX Daily Extraction'
+          schedule:
+            quartz_cron_expression: 9 0 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Daily_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_TDPS_Daily_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TDPS_Daily_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+                DataMapping_File: "./datamapping_Daily.json"
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+
+        S0TDPSXX_Trip_Delete_Detection:
+          name: 'S0TDPSXX Trip Delete Detection'
+          schedule:
+            quartz_cron_expression: 0 30 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Trip_Delete_Detection
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Trip_Delete_Detection
+              source: WORKSPACE
+            job_cluster_key: Compute_TDPS_Trip_Delete_Detection
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TDPS_Trip_Delete_Detection
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+        
+  TST_East:
+    default: true
+    workspace:
+      host: https://adb-3674853172059167.7.azuredatabricks.net
+      root_path: /Workspace/S0TDPSXX
+    run_as:
+      service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+    variables:
+      Databricks_Env: tst
+      Loadtracker_Target_Catalog: ent_dtlk_tst
+      Loadtracker_Target_Schema: monitoring
+      Loadtracker_Target_Table: load_tracking_s0transportxxx
+    resources:
+      jobs:
+        S0TDPSXX_Hourly_Extraction:
+          name: 'S0TDPSXX Hourly Extraction'
+          schedule:
+            quartz_cron_expression: 12 15 * * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_TST
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Hourly_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                DataMapping_File: ./datamapping_Hourly.json
+                Databricks_Env: ${var.Databricks_Env}
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          timeout_seconds: 86400
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+        
+        S0TDPSXX_Daily_Extraction:
+          name: 'S0TDPSXX Daily Extraction'
+          schedule:
+            quartz_cron_expression: 9 0 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_TST
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Daily_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_TMS_Daily_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TMS_Daily_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+                DataMapping_File: "./datamapping_Daily.json"
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+
+        S0TDPSXX_Trip_Delete_Detection:
+          name: 'S0TDPSXX Trip Delete Detection'
+          schedule:
+            quartz_cron_expression: 0 30 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_TST
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Trip_Delete_Detection
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Trip_Delete_Detection
+              source: WORKSPACE
+            job_cluster_key: Compute_TMS_Trip_Delete_Detection
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TMS_Trip_Delete_Detection
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+        
+  TST_Central:
+    default: false
+    workspace:
+      host: https://adb-1718286213798553.13.azuredatabricks.net
+      root_path: /Workspace/S0TDPSXX
+    run_as:
+      service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+    variables:
+      Databricks_Env: tst
+      Loadtracker_Target_Catalog: entc_dtlk_tst
+      Loadtracker_Target_Schema: monitoring
+      Loadtracker_Target_Table: load_tracking_s0transportxxx
+    resources:
+      jobs:
+        S0TDPSXX_Hourly_Extraction:
+          name: 'S0TDPSXX Hourly Extraction'
+          schedule:
+            quartz_cron_expression: 12 15 * * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_TST
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Hourly_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                DataMapping_File: ./datamapping_Hourly.json
+                Databricks_Env: ${var.Databricks_Env}
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          timeout_seconds: 86400
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+        
+        S0TDPSXX_Daily_Extraction:
+          name: 'S0TDPSXX Daily Extraction'
+          schedule:
+            quartz_cron_expression: 9 0 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_TST
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Daily_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_TMS_Daily_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TMS_Daily_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+                DataMapping_File: "./datamapping_Daily.json"
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+
+        S0TDPSXX_Trip_Delete_Detection:
+          name: 'S0TDPSXX Trip Delete Detection'
+          schedule:
+            quartz_cron_expression: 0 30 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_TST
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Trip_Delete_Detection
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Trip_Delete_Detection
+              source: WORKSPACE
+            job_cluster_key: Compute_TMS_Trip_Delete_Detection
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TMS_Trip_Delete_Detection
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+  STG_East:
+    default: true
+    workspace:
+      host: https://adb-3845968449054344.4.azuredatabricks.net
+      root_path: /Workspace/S0TDPSXX
+    run_as:
+      service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+    variables:
+      Databricks_Env: stg
+      Loadtracker_Target_Catalog: ent_dtlk_stg
+      Loadtracker_Target_Schema: monitoring
+      Loadtracker_Target_Table: load_tracking_s0transportxxx
+    resources:
+      jobs:
+        S0TDPSXX_Hourly_Extraction:
+          name: 'S0TDPSXX Hourly Extraction'
+          schedule:
+            quartz_cron_expression: 12 15 * * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_STG
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Hourly_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                DataMapping_File: ./datamapping_Hourly.json
+                Databricks_Env: ${var.Databricks_Env}
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          timeout_seconds: 86400
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+        
+        S0TDPSXX_Daily_Extraction:
+          name: 'S0TDPSXX Daily Extraction'
+          schedule:
+            quartz_cron_expression: 9 0 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_STG
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Daily_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_TMS_Daily_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TMS_Daily_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+                DataMapping_File: "./datamapping_Daily.json"
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+
+        S0TDPSXX_Trip_Delete_Detection:
+          name: 'S0TDPSXX Trip Delete Detection'
+          schedule:
+            quartz_cron_expression: 0 30 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_STG
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Trip_Delete_Detection
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Trip_Delete_Detection
+              source: WORKSPACE
+            job_cluster_key: Compute_TMS_Trip_Delete_Detection
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TMS_Trip_Delete_Detection
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+        
+  STG_Central:
+    default: false
+    workspace:
+      host: https://adb-4442784722564952.12.azuredatabricks.net
+      root_path: /Workspace/S0TDPSXX
+    run_as:
+      service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+    variables:
+      Databricks_Env: stg
+      Loadtracker_Target_Catalog: entc_dtlk_stg
+      Loadtracker_Target_Schema: monitoring
+      Loadtracker_Target_Table: load_tracking_s0transportxxx
+    resources:
+      jobs:
+        S0TDPSXX_Hourly_Extraction:
+          name: 'S0TDPSXX Hourly Extraction'
+          schedule:
+            quartz_cron_expression: 12 15 * * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_STG
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Hourly_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                DataMapping_File: ./datamapping_Hourly.json
+                Databricks_Env: ${var.Databricks_Env}
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          timeout_seconds: 86400
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+        
+        S0TDPSXX_Daily_Extraction:
+          name: 'S0TDPSXX Daily Extraction'
+          schedule:
+            quartz_cron_expression: 9 0 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_STG
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Daily_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_TMS_Daily_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TMS_Daily_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+                DataMapping_File: "./datamapping_Daily.json"
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+
+        S0TDPSXX_Trip_Delete_Detection:
+          name: 'S0TDPSXX Trip Delete Detection'
+          schedule:
+            quartz_cron_expression: 0 30 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_STG
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Trip_Delete_Detection
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Trip_Delete_Detection
+              source: WORKSPACE
+            job_cluster_key: Compute_TMS_Trip_Delete_Detection
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TMS_Trip_Delete_Detection
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 9b46b702-611f-4d11-bdb6-b6b83a0b45b7
+  PRD_East:
+    default: true
+    workspace:
+      host: https://adb-2699047964193452.12.azuredatabricks.net
+      root_path: /Workspace/S0TDPSXX
+    run_as:
+      service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+    variables:
+      Databricks_Env: prd
+      Loadtracker_Target_Catalog: ent_dtlk_prd
+      Loadtracker_Target_Schema: monitoring
+      Loadtracker_Target_Table: load_tracking_s0transportxxx
+    resources:
+      jobs:
+        S0TDPSXX_Hourly_Extraction:
+          name: 'S0TDPSXX Hourly Extraction'
+          schedule:
+            quartz_cron_expression: 12 15 * * * ?
+            timezone_id: America/New_York
+            pause_status: UNPAUSED
+          permissions:
+            - service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_PRD
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Hourly_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                DataMapping_File: ./datamapping_Hourly.json
+                Databricks_Env: ${var.Databricks_Env}
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          timeout_seconds: 86400
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+        
+        S0TDPSXX_Daily_Extraction:
+          name: 'S0TDPSXX Daily Extraction'
+          schedule:
+            quartz_cron_expression: 9 0 22 * * ?
+            timezone_id: America/New_York
+            pause_status: UNPAUSED
+          permissions:
+            - service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_PRD
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Daily_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_TMS_Daily_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TMS_Daily_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+                DataMapping_File: "./datamapping_Daily.json"
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+
+        S0TDPSXX_Trip_Delete_Detection:
+          name: 'S0TDPSXX Trip Delete Detection'
+          schedule:
+            quartz_cron_expression: 0 30 22 * * ?
+            timezone_id: America/New_York
+            pause_status: UNPAUSED
+          permissions:
+            - service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_PRD
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Trip_Delete_Detection
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Trip_Delete_Detection
+              source: WORKSPACE
+            job_cluster_key: Compute_TMS_Trip_Delete_Detection
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TMS_Trip_Delete_Detection
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+        
+  PRD_Central:
+    default: false
+    workspace:
+      host: https://adb-987189095019215.15.azuredatabricks.net
+      root_path: /Workspace/S0TDPSXX
+    run_as:
+      service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+    variables:
+      Databricks_Env: prd
+      Loadtracker_Target_Catalog: entc_dtlk_prd
+      Loadtracker_Target_Schema: monitoring
+      Loadtracker_Target_Table: load_tracking_s0transportxxx
+    resources:
+      jobs:
+        S0TDPSXX_Hourly_Extraction:
+          name: 'S0TDPSXX Hourly Extraction'
+          schedule:
+            quartz_cron_expression: 12 15 * * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_PRD
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Hourly_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_S0TDPSXX_Hourly_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                DataMapping_File: ./datamapping_Hourly.json
+                Databricks_Env: ${var.Databricks_Env}
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          timeout_seconds: 86400
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+        
+        S0TDPSXX_Daily_Extraction:
+          name: 'S0TDPSXX Daily Extraction'
+          schedule:
+            quartz_cron_expression: 9 0 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_PRD
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Daily_Extraction
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Wrapper
+              source: WORKSPACE
+            job_cluster_key: Compute_TMS_Daily_Extract
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TMS_Daily_Extract
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+                DataMapping_File: "./datamapping_Daily.json"
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+
+        S0TDPSXX_Trip_Delete_Detection:
+          name: 'S0TDPSXX Trip Delete Detection'
+          schedule:
+            quartz_cron_expression: 0 30 22 * * ?
+            timezone_id: America/New_York
+            pause_status: PAUSED
+          permissions:
+            - service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_PRD
+              level: CAN_MANAGE
+          tasks:
+          - task_key: S0TDPSXX_Trip_Delete_Detection
+            notebook_task:
+              notebook_path: /Workspace/S0TDPSXX/files/src/Trip_Delete_Detection
+              source: WORKSPACE
+            job_cluster_key: Compute_TMS_Trip_Delete_Detection
+            libraries:
+            - jar: /Volumes/${var.Loadtracker_Target_Catalog}/volumes/jdbc-jars/ojdbc7.jar
+          job_clusters:
+          - job_cluster_key: Compute_TMS_Trip_Delete_Detection
+            new_cluster:
+              cluster_name: ""
+              spark_version: 17.3.x-scala2.13
+              azure_attributes:
+                first_on_demand: 1
+                availability: SPOT_WITH_FALLBACK_AZURE
+                spot_bid_max_price: -1
+              node_type_id: Standard_D4ds_v5
+              spark_env_vars:
+                PYSPARK_PYTHON: /databricks/python3/bin/python3
+                Databricks_Env: ${var.Databricks_Env}
+                Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+                Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+                Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+              enable_elastic_disk: true
+              data_security_mode: USER_ISOLATION
+              num_workers: 8
+          queue:
+            enabled: true
+          run_as:
+            service_principal_name: 6eb6004e-8a2e-497a-b942-8d6b4b9158bc

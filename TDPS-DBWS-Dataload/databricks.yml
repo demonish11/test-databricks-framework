@@ -1,0 +1,15 @@
+bundle:
+  name: TDPS-DBWS-DataLoad
+
+include:
+  - configs/vars_base.yml
+  - resources/jobs/oracle_etl_jobs.yml
+  - targets/dev.yml
+  - targets/tst.yml
+  - targets/stg.yml
+  - targets/prd.yml
+
+sync:
+  paths:
+    - src
+    - sql

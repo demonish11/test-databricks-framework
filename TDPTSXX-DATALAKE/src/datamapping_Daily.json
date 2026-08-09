@@ -1,0 +1,954 @@
+{
+  "DispatchSite": {
+  "Entity": "DispatchSite",
+    "SQL": {
+		  "dev": "SELECT CAST(DS_FAC_ID AS DECIMAL(38,0)) DS_FAC_ID,DS_NM,DS_ABBR,CREATE_TS,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM,LAST_UPD_USERID,DC_ABBR,CAST(GEOG_LOC_ID AS DECIMAL(20,0)) GEOG_LOC_ID,CAST(SITE_PAY_RATE AS DECIMAL(9,2)) SITE_PAY_RATE,DEPT,EMAIL,CAST(NVL(TIME_ZONE_CODE,0) AS DECIMAL(8,0)) TIME_ZONE_CODE,PO_ABBR FROM DRVPAY.DISPATCH_SITE",
+      "tst": "SELECT CAST(DS_FAC_ID AS DECIMAL(38,0)) DS_FAC_ID,DS_NM,DS_ABBR,CREATE_TS,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM,LAST_UPD_USERID,DC_ABBR,CAST(GEOG_LOC_ID AS DECIMAL(20,0)) GEOG_LOC_ID,CAST(SITE_PAY_RATE AS DECIMAL(9,2)) SITE_PAY_RATE,DEPT,EMAIL,CAST(NVL(TIME_ZONE_CODE,0) AS DECIMAL(8,0)) TIME_ZONE_CODE,PO_ABBR FROM DRVPAY.DISPATCH_SITE",
+      "stg": "SELECT CAST(DS_FAC_ID AS DECIMAL(38,0)) DS_FAC_ID,DS_NM,DS_ABBR,CREATE_TS,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM,LAST_UPD_USERID,DC_ABBR,CAST(GEOG_LOC_ID AS DECIMAL(20,0)) GEOG_LOC_ID,CAST(SITE_PAY_RATE AS DECIMAL(9,2)) SITE_PAY_RATE,DEPT,EMAIL,CAST(NVL(TIME_ZONE_CODE,0) AS DECIMAL(8,0)) TIME_ZONE_CODE,PO_ABBR FROM DRVPAY.DISPATCH_SITE",
+      "prd": "SELECT CAST(DS_FAC_ID AS DECIMAL(38,0)) DS_FAC_ID,DS_NM,DS_ABBR,CREATE_TS,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM,LAST_UPD_USERID,DC_ABBR,CAST(GEOG_LOC_ID AS DECIMAL(20,0)) GEOG_LOC_ID,CAST(SITE_PAY_RATE AS DECIMAL(9,2)) SITE_PAY_RATE,DEPT,EMAIL,CAST(NVL(TIME_ZONE_CODE,0) AS DECIMAL(8,0)) TIME_ZONE_CODE,PO_ABBR FROM DRVPAY.DISPATCH_SITE"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/DispatchSite/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "DispatchSite",
+    "Target_UC_Schema": "transportation_dispatchsite_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+	  "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"DS_FAC_ID"
+  },
+  "DispatchSiteDriverFleet": {
+  "Entity": "DispatchSiteDriverFleet",
+    "SQL": {
+		  "dev": "SELECT CAST(DSDF_ID AS INT) DSDF_ID,CAST(DS_FAC_ID AS INT) DS_FAC_ID,CAST(DRIVER_ID AS INT) DRIVER_ID,DRIVER_NBR,STRTDT,ENDDT,DISPLAY_NBR,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,CAST(DRIVER_TYPE AS DECIMAL) DRIVER_TYPE,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DISPATCH_SITE_DRIVER_FLEET",
+      "tst": "SELECT CAST(DSDF_ID AS INT) DSDF_ID,CAST(DS_FAC_ID AS INT) DS_FAC_ID,CAST(DRIVER_ID AS INT) DRIVER_ID,DRIVER_NBR,STRTDT,ENDDT,DISPLAY_NBR,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,CAST(DRIVER_TYPE AS DECIMAL) DRIVER_TYPE,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DISPATCH_SITE_DRIVER_FLEET",
+      "stg": "SELECT CAST(DSDF_ID AS INT) DSDF_ID,CAST(DS_FAC_ID AS INT) DS_FAC_ID,CAST(DRIVER_ID AS INT) DRIVER_ID,DRIVER_NBR,STRTDT,ENDDT,DISPLAY_NBR,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,CAST(DRIVER_TYPE AS DECIMAL) DRIVER_TYPE,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DISPATCH_SITE_DRIVER_FLEET",
+      "prd": "SELECT CAST(DSDF_ID AS INT) DSDF_ID,CAST(DS_FAC_ID AS INT) DS_FAC_ID,CAST(DRIVER_ID AS INT) DRIVER_ID,DRIVER_NBR,STRTDT,ENDDT,DISPLAY_NBR,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,CAST(DRIVER_TYPE AS DECIMAL) DRIVER_TYPE,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DISPATCH_SITE_DRIVER_FLEET"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/DispatchSite/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "DispatchSiteDriverFleet",
+    "Target_UC_Schema": "transportation_dispatchsite_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"DSDF_ID"
+  },
+  "DistributionCenter": {
+  "Entity": "DistributionCenter",
+    "SQL": {
+      "dev": "SELECT DC_ABBR,SCAC_CD,DC_NM,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DC",
+      "tst": "SELECT DC_ABBR,SCAC_CD,DC_NM,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DC",
+      "stg": "SELECT DC_ABBR,SCAC_CD,DC_NM,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DC",
+      "prd": "SELECT DC_ABBR,SCAC_CD,DC_NM,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DC"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/DistributionCenter/Raw/DistributionCenter/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "DistributionCenter",
+    "Target_UC_Schema": "transportation_distributioncenter_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"DC_ABBR"
+  },
+  "RouteStatusType": {
+  "Entity": "RouteStatusType",
+    "SQL": {
+      "dev": "SELECT CAST(RST_CD AS INT) RST_CD, RST_DESC, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.ROUTE_STATUS_TYPE",
+      "tst": "SELECT CAST(RST_CD AS INT) RST_CD, RST_DESC, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.ROUTE_STATUS_TYPE",
+      "stg": "SELECT CAST(RST_CD AS INT) RST_CD, RST_DESC, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.ROUTE_STATUS_TYPE",
+      "prd": "SELECT CAST(RST_CD AS INT) RST_CD, RST_DESC, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.ROUTE_STATUS_TYPE"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/Route/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "RouteStatusType",
+    "Target_UC_Schema": "transportation_route_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"RST_CD"		
+  },
+  "ActivityType": {
+  "Entity": "ActivityType",
+    "SQL": {
+      "dev": "SELECT CAST(AT_CD AS INT) AT_CD, AT_DESC, TAT_CD, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.ACTVTY_TYPE",
+      "tst": "SELECT CAST(AT_CD AS INT) AT_CD, AT_DESC, TAT_CD, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.ACTVTY_TYPE",
+      "stg": "SELECT CAST(AT_CD AS INT) AT_CD, AT_DESC, TAT_CD, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.ACTVTY_TYPE",
+      "prd": "SELECT CAST(AT_CD AS INT) AT_CD, AT_DESC, TAT_CD, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.ACTVTY_TYPE"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/Driver/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "ActivityType",
+    "Target_UC_Schema": "transportation_driver_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"AT_CD"
+	},
+  "ProductCategoryType": {
+  "Entity": "ProductCategoryType",
+    "SQL": {
+      "dev": "SELECT PCT_DESC,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,LOW_TEMP_TH,HIGH_TEMP_TH,SET_POINT,INDUCTION_TEMP,CAST(PRIORITY AS INT) PRIORITY,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.PRDCT_CATG_TYPE",
+      "tst": "SELECT PCT_DESC,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,LOW_TEMP_TH,HIGH_TEMP_TH,SET_POINT,INDUCTION_TEMP,CAST(PRIORITY AS INT) PRIORITY,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.PRDCT_CATG_TYPE",
+      "stg": "SELECT PCT_DESC,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,LOW_TEMP_TH,HIGH_TEMP_TH,SET_POINT,INDUCTION_TEMP,CAST(PRIORITY AS INT) PRIORITY,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.PRDCT_CATG_TYPE",
+      "prd": "SELECT PCT_DESC,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,LOW_TEMP_TH,HIGH_TEMP_TH,SET_POINT,INDUCTION_TEMP,CAST(PRIORITY AS INT) PRIORITY,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.PRDCT_CATG_TYPE"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/ProductCategory/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "ProductCategoryType",
+    "Target_UC_Schema": "transportation_productcategory_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"PCT_DESC"
+  },
+  "TimeZone": {
+  "Entity": "TimeZone",
+    "SQL": {
+      "dev": "SELECT CAST(TIME_ZONE_CODE AS DECIMAL) TIME_ZONE_CODE,TIME_ZONE_TXT,TIME_ZONE_DESC,CAST(TDPS_OFFSET AS DECIMAL) TDPS_OFFSET,CAST(TIME_ZONE_OFFSET AS DECIMAL) TIME_ZONE_OFFSET,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TIME_ZONE_STD_DESC,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.TIME_ZONE_LOOKUP",
+      "tst": "SELECT CAST(TIME_ZONE_CODE AS DECIMAL) TIME_ZONE_CODE,TIME_ZONE_TXT,TIME_ZONE_DESC,CAST(TDPS_OFFSET AS DECIMAL) TDPS_OFFSET,CAST(TIME_ZONE_OFFSET AS DECIMAL) TIME_ZONE_OFFSET,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TIME_ZONE_STD_DESC,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.TIME_ZONE_LOOKUP",
+      "stg": "SELECT CAST(TIME_ZONE_CODE AS DECIMAL) TIME_ZONE_CODE,TIME_ZONE_TXT,TIME_ZONE_DESC,CAST(TDPS_OFFSET AS DECIMAL) TDPS_OFFSET,CAST(TIME_ZONE_OFFSET AS DECIMAL) TIME_ZONE_OFFSET,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TIME_ZONE_STD_DESC,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.TIME_ZONE_LOOKUP",
+      "prd": "SELECT CAST(TIME_ZONE_CODE AS DECIMAL) TIME_ZONE_CODE,TIME_ZONE_TXT,TIME_ZONE_DESC,CAST(TDPS_OFFSET AS DECIMAL) TDPS_OFFSET,CAST(TIME_ZONE_OFFSET AS DECIMAL) TIME_ZONE_OFFSET,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TIME_ZONE_STD_DESC,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.TIME_ZONE_LOOKUP"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/TimeZone/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "TimeZone",
+    "Target_UC_Schema": "transportation_timezone_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"Time_Zone_Code"
+	},
+  "FacilityProductCategoryReceivingType": {
+  "Entity": "FacilityProductCategoryReceivingType",
+    "SQL": {
+      "dev": "SELECT CAST(PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) PRDCT_SUPPLY_FAC_LOC_ID,EXT_UNIQ_ID,VNDR_NBR,PCT_DESC,RT_DESC,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.FAC_PRDCT_CATG_RCVNG_TYPE",
+      "tst": "SELECT CAST(PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) PRDCT_SUPPLY_FAC_LOC_ID,EXT_UNIQ_ID,VNDR_NBR,PCT_DESC,RT_DESC,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.FAC_PRDCT_CATG_RCVNG_TYPE",
+      "stg": "SELECT CAST(PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) PRDCT_SUPPLY_FAC_LOC_ID,EXT_UNIQ_ID,VNDR_NBR,PCT_DESC,RT_DESC,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.FAC_PRDCT_CATG_RCVNG_TYPE",
+      "prd": "SELECT CAST(PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) PRDCT_SUPPLY_FAC_LOC_ID,EXT_UNIQ_ID,VNDR_NBR,PCT_DESC,RT_DESC,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.FAC_PRDCT_CATG_RCVNG_TYPE"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/Facility/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "FacilityProductCategoryReceivingType",
+    "Target_UC_Schema": "transportation_facility_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"PCT_DESC,RT_DESC,PRDCT_SUPPLY_FAC_LOC_ID"
+	},
+  "FacilityProductCategoryType": {
+  "Entity": "FacilityProductCategoryType",
+    "SQL": {
+      "dev": "SELECT CAST(PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) PRDCT_SUPPLY_FAC_LOC_ID, EXT_UNIQ_ID, VNDR_NBR, PCT_DESC, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.FAC_PRDCT_CATG_TYPE",
+      "tst": "SELECT CAST(PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) PRDCT_SUPPLY_FAC_LOC_ID, EXT_UNIQ_ID, VNDR_NBR, PCT_DESC, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.FAC_PRDCT_CATG_TYPE",
+      "stg": "SELECT CAST(PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) PRDCT_SUPPLY_FAC_LOC_ID, EXT_UNIQ_ID, VNDR_NBR, PCT_DESC, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.FAC_PRDCT_CATG_TYPE",
+      "prd": "SELECT CAST(PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) PRDCT_SUPPLY_FAC_LOC_ID, EXT_UNIQ_ID, VNDR_NBR, PCT_DESC, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.FAC_PRDCT_CATG_TYPE"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/Facility/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "FacilityProductCategoryType",
+    "Target_UC_Schema": "transportation_facility_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"PCT_DESC,PRDCT_SUPPLY_FAC_LOC_ID"
+  },
+  "FacilityTransitDetail": {
+  "Entity": "FacilityTransitDetail",
+    "SQL": {
+      "dev": "SELECT CAST(STRTNG_PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) STRTNG_PRDCT_SUPPLY_FAC_LOC_ID, STRTNG_EXT_UNIQ_ID, STRTNG_VNDR_NBR, CAST(ENDNG_PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) ENDNG_PRDCT_SUPPLY_FAC_LOC_ID, ENDNG_EXT_UNIQ_ID, ENDNG_VNDR_NBR, CAST(FTD_MILG AS DECIMAL(9,3)) FTD_MILG, CAST(FTD_DRIVE_MINS AS DECIMAL(9,3)) FTD_DRIVE_MINS, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM, TRUNC(NVL(LAST_UPD_TS,CREATE_TS)) LAST_UPDATED_DATE FROM DRVPAY.FAC_TRANSIT_DTL",
+      "tst": "SELECT CAST(STRTNG_PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) STRTNG_PRDCT_SUPPLY_FAC_LOC_ID, STRTNG_EXT_UNIQ_ID, STRTNG_VNDR_NBR, CAST(ENDNG_PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) ENDNG_PRDCT_SUPPLY_FAC_LOC_ID, ENDNG_EXT_UNIQ_ID, ENDNG_VNDR_NBR, CAST(FTD_MILG AS DECIMAL(9,3)) FTD_MILG, CAST(FTD_DRIVE_MINS AS DECIMAL(9,3)) FTD_DRIVE_MINS, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM, TRUNC(NVL(LAST_UPD_TS,CREATE_TS)) LAST_UPDATED_DATE FROM DRVPAY.FAC_TRANSIT_DTL",
+      "stg": "SELECT CAST(STRTNG_PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) STRTNG_PRDCT_SUPPLY_FAC_LOC_ID, STRTNG_EXT_UNIQ_ID, STRTNG_VNDR_NBR, CAST(ENDNG_PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) ENDNG_PRDCT_SUPPLY_FAC_LOC_ID, ENDNG_EXT_UNIQ_ID, ENDNG_VNDR_NBR, CAST(FTD_MILG AS DECIMAL(9,3)) FTD_MILG, CAST(FTD_DRIVE_MINS AS DECIMAL(9,3)) FTD_DRIVE_MINS, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM, TRUNC(NVL(LAST_UPD_TS,CREATE_TS)) LAST_UPDATED_DATE FROM DRVPAY.FAC_TRANSIT_DTL",
+      "prd": "SELECT CAST(STRTNG_PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) STRTNG_PRDCT_SUPPLY_FAC_LOC_ID, STRTNG_EXT_UNIQ_ID, STRTNG_VNDR_NBR, CAST(ENDNG_PRDCT_SUPPLY_FAC_LOC_ID AS DECIMAL(20,0)) ENDNG_PRDCT_SUPPLY_FAC_LOC_ID, ENDNG_EXT_UNIQ_ID, ENDNG_VNDR_NBR, CAST(FTD_MILG AS DECIMAL(9,3)) FTD_MILG, CAST(FTD_DRIVE_MINS AS DECIMAL(9,3)) FTD_DRIVE_MINS, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM, TRUNC(NVL(LAST_UPD_TS,CREATE_TS)) LAST_UPDATED_DATE FROM DRVPAY.FAC_TRANSIT_DTL"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/Facility/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "FacilityTransitDetail",
+    "Target_UC_Schema": "transportation_facility_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"STRTNG_PRDCT_SUPPLY_FAC_LOC_ID,ENDNG_PRDCT_SUPPLY_FAC_LOC_ID"
+  },
+  "Driver": {
+  "Entity": "Driver",
+    "SQL": {
+      "dev": "SELECT CAST(DRIVER_ID AS INT) DRIVER_ID,CAST(PERNR AS INT) PERNR,DRIVER_LAST_NM,DRIVER_FIRST_NM,DRIVER_MIDL_INIT,OTHERTITLE,DRIVER_HIRE_DT,DRIVER_REHIRE_DT,DRIVER_TERM_DT,DRVR_PERNR_IND,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DRIVER",
+      "tst": "SELECT CAST(DRIVER_ID AS INT) DRIVER_ID,CAST(PERNR AS INT) PERNR,DRIVER_LAST_NM,DRIVER_FIRST_NM,DRIVER_MIDL_INIT,OTHERTITLE,DRIVER_HIRE_DT,DRIVER_REHIRE_DT,DRIVER_TERM_DT,DRVR_PERNR_IND,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DRIVER",
+      "stg": "SELECT CAST(DRIVER_ID AS INT) DRIVER_ID,CAST(PERNR AS INT) PERNR,DRIVER_LAST_NM,DRIVER_FIRST_NM,DRIVER_MIDL_INIT,OTHERTITLE,DRIVER_HIRE_DT,DRIVER_REHIRE_DT,DRIVER_TERM_DT,DRVR_PERNR_IND,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DRIVER",
+      "prd": "SELECT CAST(DRIVER_ID AS INT) DRIVER_ID,CAST(PERNR AS INT) PERNR,DRIVER_LAST_NM,DRIVER_FIRST_NM,DRIVER_MIDL_INIT,OTHERTITLE,DRIVER_HIRE_DT,DRIVER_REHIRE_DT,DRIVER_TERM_DT,DRVR_PERNR_IND,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DRIVER"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/Driver/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "Driver",
+    "Target_UC_Schema": "transportation_driver_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"DRIVER_ID"
+	},
+  "DriverOrganization": {
+  "Entity": "DriverOrganization",
+    "SQL": {
+      "dev": "SELECT CAST(DRIVER_ID AS INT) DRIVER_ID,CAST(PERNR AS INT) PERNR,DRIVER_NBR,DRIVER_LAST_NM,DRIVER_FIRST_NM,DRIVER_MIDL_INIT,DRIVER_HIRE_DT,DRIVER_TERM_DT,DRIVER_CONTACT_TELE_NBR,CAST(DST_CD AS INT) DST_CD,PERSONALAREA,PERSONALSUBAREA,EMPSUBGROUP,WORKCONTRACT,CAST(ORG_UNIT AS INT) ORG_UNIT,UNITSHORTDESC,UNITLONGDESC,SUBGROUP ,PAYROLLADMIN,INITIALS,ALIASNAME,OTHERTITLE,SEX,BIRTH_DATE,COUNTRYOFBIRTH,STATEXXXXX,STREET_ADDRESS_1,STREET_ADDRESS_2,CITY,ZIP_CODE,COUNTY,STATE,COUNTRY_CODE,PHONE_NUMBER,EMPLOYMENTYTPE,WAGETYPE,FULLTIMEDATE,BECOMEDRIVERDATE,CREATE_TS,LAST_UPD_TS,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DRIVER_ORG",
+      "tst": "SELECT CAST(DRIVER_ID AS INT) DRIVER_ID,CAST(PERNR AS INT) PERNR,DRIVER_NBR,DRIVER_LAST_NM,DRIVER_FIRST_NM,DRIVER_MIDL_INIT,DRIVER_HIRE_DT,DRIVER_TERM_DT,DRIVER_CONTACT_TELE_NBR,CAST(DST_CD AS INT) DST_CD,PERSONALAREA,PERSONALSUBAREA,EMPSUBGROUP,WORKCONTRACT,CAST(ORG_UNIT AS INT) ORG_UNIT,UNITSHORTDESC,UNITLONGDESC,SUBGROUP ,PAYROLLADMIN,INITIALS,ALIASNAME,OTHERTITLE,SEX,BIRTH_DATE,COUNTRYOFBIRTH,STATEXXXXX,STREET_ADDRESS_1,STREET_ADDRESS_2,CITY,ZIP_CODE,COUNTY,STATE,COUNTRY_CODE,PHONE_NUMBER,EMPLOYMENTYTPE,WAGETYPE,FULLTIMEDATE,BECOMEDRIVERDATE,CREATE_TS,LAST_UPD_TS,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DRIVER_ORG",
+      "stg": "SELECT CAST(DRIVER_ID AS INT) DRIVER_ID,CAST(PERNR AS INT) PERNR,DRIVER_NBR,DRIVER_LAST_NM,DRIVER_FIRST_NM,DRIVER_MIDL_INIT,DRIVER_HIRE_DT,DRIVER_TERM_DT,DRIVER_CONTACT_TELE_NBR,CAST(DST_CD AS INT) DST_CD,PERSONALAREA,PERSONALSUBAREA,EMPSUBGROUP,WORKCONTRACT,CAST(ORG_UNIT AS INT) ORG_UNIT,UNITSHORTDESC,UNITLONGDESC,SUBGROUP ,PAYROLLADMIN,INITIALS,ALIASNAME,OTHERTITLE,SEX,BIRTH_DATE,COUNTRYOFBIRTH,STATEXXXXX,STREET_ADDRESS_1,STREET_ADDRESS_2,CITY,ZIP_CODE,COUNTY,STATE,COUNTRY_CODE,PHONE_NUMBER,EMPLOYMENTYTPE,WAGETYPE,FULLTIMEDATE,BECOMEDRIVERDATE,CREATE_TS,LAST_UPD_TS,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DRIVER_ORG",
+      "prd": "SELECT CAST(DRIVER_ID AS INT) DRIVER_ID,CAST(PERNR AS INT) PERNR,DRIVER_NBR,DRIVER_LAST_NM,DRIVER_FIRST_NM,DRIVER_MIDL_INIT,DRIVER_HIRE_DT,DRIVER_TERM_DT,DRIVER_CONTACT_TELE_NBR,CAST(DST_CD AS INT) DST_CD,PERSONALAREA,PERSONALSUBAREA,EMPSUBGROUP,WORKCONTRACT,CAST(ORG_UNIT AS INT) ORG_UNIT,UNITSHORTDESC,UNITLONGDESC,SUBGROUP ,PAYROLLADMIN,INITIALS,ALIASNAME,OTHERTITLE,SEX,BIRTH_DATE,COUNTRYOFBIRTH,STATEXXXXX,STREET_ADDRESS_1,STREET_ADDRESS_2,CITY,ZIP_CODE,COUNTY,STATE,COUNTRY_CODE,PHONE_NUMBER,EMPLOYMENTYTPE,WAGETYPE,FULLTIMEDATE,BECOMEDRIVERDATE,CREATE_TS,LAST_UPD_TS,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DRIVER_ORG"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/Driver/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "DriverOrganization",
+    "Target_UC_Schema": "transportation_driver_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"Driver_ID,Org_Unit,DST_CD"
+  },
+  "DriverStatusType": {
+  "Entity": "DriverStatusType",
+    "SQL": {
+      "dev": "SELECT CAST(DST_CD AS INT) DST_CD, DST_DESC, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DRIVER_STATUS_TYPE",
+      "tst": "SELECT CAST(DST_CD AS INT) DST_CD, DST_DESC, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DRIVER_STATUS_TYPE",
+      "stg": "SELECT CAST(DST_CD AS INT) DST_CD, DST_DESC, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DRIVER_STATUS_TYPE",
+      "prd": "SELECT CAST(DST_CD AS INT) DST_CD, DST_DESC, CREATE_TS, LAST_UPD_TS, LAST_UPD_USERID, TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM DRVPAY.DRIVER_STATUS_TYPE"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/Driver/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "DriverStatusType",
+    "Target_UC_Schema": "transportation_driver_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"DST_CD"
+  },
+  "DriverStandardAdjustmentGroup": {
+  "Entity": "DriverStandardAdjustmentGroup",
+    "SQL": {
+      "dev": "SELECT CAST(DSG_ID AS DECIMAL) DSG_ID,DSAG_NM,EFFDT,ENDDT,CAST(DSAG_MINS AS DECIMAL(9,2)) DSAG_MINS,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,CAST(DS_FAC_ID AS DECIMAL) DS_FAC_ID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM  DRVPAY.DRIVING_STND_ADJ_GRP",
+      "tst": "SELECT CAST(DSG_ID AS DECIMAL) DSG_ID,DSAG_NM,EFFDT,ENDDT,CAST(DSAG_MINS AS DECIMAL(9,2)) DSAG_MINS,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,CAST(DS_FAC_ID AS DECIMAL) DS_FAC_ID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM  DRVPAY.DRIVING_STND_ADJ_GRP",
+      "stg": "SELECT CAST(DSG_ID AS DECIMAL) DSG_ID,DSAG_NM,EFFDT,ENDDT,CAST(DSAG_MINS AS DECIMAL(9,2)) DSAG_MINS,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,CAST(DS_FAC_ID AS DECIMAL) DS_FAC_ID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM  DRVPAY.DRIVING_STND_ADJ_GRP",
+      "prd": "SELECT CAST(DSG_ID AS DECIMAL) DSG_ID,DSAG_NM,EFFDT,ENDDT,CAST(DSAG_MINS AS DECIMAL(9,2)) DSAG_MINS,CREATE_TS,LAST_UPD_TS,LAST_UPD_USERID,CAST(DS_FAC_ID AS DECIMAL) DS_FAC_ID,TO_CHAR(NVL(LAST_UPD_TS,CREATE_TS), 'YYYY-MM-DD HH24:MI:SS.FF6') LAST_UPDATED_DTTM FROM  DRVPAY.DRIVING_STND_ADJ_GRP"
+    },
+    "Time_Grain": "DAILY",
+    "Incremental_Load_Flag": "N",
+    "SourceIncremental_Identifier_Col": "NVL(LAST_UPD_TS,CREATE_TS)",
+    "UCIncremental_Identifier_Col": "LAST_UPDATED_DTTM",
+    "Target_Datalake": {
+      "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+      },
+    "Secondary_Datalake": {
+      "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+      "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+      "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+      "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+    },
+    "Target_File_Path": "/Publix/Transportation/Driver/Raw/",
+    "Target_File_Format": "Delta",
+    "Target_Entity": "DriverStandardAdjustmentGroup",
+    "Target_UC_Schema": "transportation_driver_raw",
+    "Target_Unity_Catalog": {
+      "dev": "ent_dtlk_dev",
+      "tst": "ent_dtlk_tst",
+      "stg": "ent_dtlk_stg",
+      "prd": "ent_dtlk_prd"
+    },
+    "Secondary_Unity_Catalog": {
+      "dev": "entc_dtlk_dev",
+      "tst": "entc_dtlk_tst",
+      "stg": "entc_dtlk_stg",
+      "prd": "entc_dtlk_prd"
+    },
+    "URL": {
+      "dev": "jdbc:oracle:thin://@10.106.198.72:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin://@10.104.198.80:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin://@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin://@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "Driver" : "oracle.jdbc.driver.OracleDriver",
+    "DBType" : "Oracle",
+    "keyvault":{
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "PasswordSecret":{
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "NHA":{
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "PrimaryKey":"DSG_ID"
+  }
+}

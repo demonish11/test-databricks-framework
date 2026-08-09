@@ -1,0 +1,87 @@
+variables:
+  # TODO: Shared defaults below still contain placeholders on purpose.
+  # TODO: Replace these only if you want repo-wide defaults instead of per-target overrides.
+  Databricks_Env:
+    default: dev
+    description: Deployment environment code.
+
+  Oracle_Jdbc_Jar_Path:
+    # TODO: Replace __JDBC_CATALOG__ only if you want a shared default jar path.
+    # TODO: Also validate whether this should remain ojdbc8.jar or be changed to ojdbc7.jar.
+    default: /Volumes/__JDBC_CATALOG__/volumes/jdbc-jars/ojdbc8.jar
+    description: Oracle JDBC jar path for the current workspace.
+
+  Loadtracker_Target_Catalog:
+    # TODO: Replace __TARGET_CATALOG__ if you want a shared catalog default.
+    default: __TARGET_CATALOG__
+    description: Unity Catalog catalog for load tracking.
+
+  Loadtracker_Target_Schema:
+    # TODO: Replace __TARGET_SCHEMA__ if this should not stay as the per-target override.
+    # TODO: Current best-known value from the implementation prompt is monitoring.
+    default: __TARGET_SCHEMA__
+    description: Schema for load tracking objects.
+
+  Loadtracker_Target_Table:
+    # TODO: Replace __TARGET_TABLE__ if you want a shared load-tracker table default.
+    default: __TARGET_TABLE__
+    description: Table used to persist load tracking state.
+
+  Job_Timezone:
+    default: America/New_York
+    description: Timezone for scheduled jobs.
+
+  Daily_Cron_Schedule:
+    default: '0 30 2 * * ?'
+    description: Daily batch schedule.
+
+  Transactional_Cron_Schedule:
+    default: '0 * * * * ?'
+    description: Transactional schedule targeted at every minute execution.
+
+  Daily_Source_Config_Path:
+    # TODO: Replace __DAILY_SOURCE_CONFIG_PATH__ if you want a shared daily source-config path.
+    default: __DAILY_SOURCE_CONFIG_PATH__
+    description: Placeholder path to the daily source extraction configuration.
+
+  Transactional_Source_Config_Path:
+    # TODO: Replace __TRANSACTIONAL_SOURCE_CONFIG_PATH__ if you want a shared transactional source-config path.
+    default: __TRANSACTIONAL_SOURCE_CONFIG_PATH__
+    description: Placeholder path to the transactional source extraction configuration.
+
+  Initial_Load_Source_Config_Path:
+    # TODO: Replace __INITIAL_LOAD_SOURCE_CONFIG_PATH__ if you want a shared initial-load source-config path.
+    default: __INITIAL_LOAD_SOURCE_CONFIG_PATH__
+    description: Placeholder path to the initial-load source extraction configuration.
+
+  Historical_Source_Config_Path:
+    # TODO: Replace __HISTORICAL_SOURCE_CONFIG_PATH__ if you want a shared historical source-config path.
+    default: __HISTORICAL_SOURCE_CONFIG_PATH__
+    description: Placeholder path to the historical source extraction configuration.
+
+  Target_Config_Path:
+    # TODO: Replace __TARGET_CONFIG_PATH__ if you want a shared target-config path.
+    default: __TARGET_CONFIG_PATH__
+    description: Placeholder path to the target load configuration.
+
+  Watermark_Column:
+    # TODO: Replace __WATERMARK_COLUMN__ after the transactional/incremental source column is confirmed.
+    default: __WATERMARK_COLUMN__
+    description: Placeholder source column used for incremental extraction.
+
+  Transactional_Window_Minutes:
+    default: '1'
+    description: Size of the transactional extraction window in minutes.
+
+  Historical_Cutoff_Type_Default:
+    default: ''
+    description: Default cutoff type for manual historical runs.
+
+  Historical_Cutoff_Value_Default:
+    default: ''
+    description: Default cutoff value for manual historical runs.
+
+  Historical_Cutoff_End_Value_Default:
+    default: ''
+    description: Optional end value for manual historical range runs.
+

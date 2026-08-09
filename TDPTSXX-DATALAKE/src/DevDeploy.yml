@@ -1,0 +1,36 @@
+trigger: none
+
+pool: ubuntu-latest-publix
+
+variables:
+- name: DtlkRegionEast
+  value: ent_dtlk
+- name: DtlkRegionCentral
+  value: entc_dtlk
+  
+stages:
+- stage: Dev
+  displayName: "Dev"
+  jobs:
+  - template: Deploy_Template.yml
+    parameters:
+      publixEnvironment: 'DEV_East'
+      azdoEnvironment: DEV_S0TDPSXX
+      azureSubscription: 's0tdpsxx-01-dev'
+      keyVaultName: 'cutdkyvtdbwss0tdpsxx01'
+      patSecretName: 'cutddbwstransp01-databricks-pat'
+      pythonVersion: '3.x'
+      cli_version: 'v0.297.2'
+      databricksUserAcct: 'cutddbwstransp01'
+      databricksHost: 'https://adb-3618393276190872.12.azuredatabricks.net/'
+  - template: Deploy_Template.yml
+    parameters:
+      publixEnvironment: 'DEV_Central'
+      azdoEnvironment: DEV_S0TDPSXX
+      azureSubscription: 's0tdpsxx-01-dev'
+      keyVaultName: 'cutdkyvtdbwss0tdpsxx01'
+      patSecretName: 'cucddbwstransp01-databricks-pat'
+      pythonVersion: '3.x'
+      cli_version: 'v0.297.2'
+      databricksUserAcct: 'cucddbwstransp01'
+      databricksHost: 'https://adb-840646084492194.14.azuredatabricks.net/'

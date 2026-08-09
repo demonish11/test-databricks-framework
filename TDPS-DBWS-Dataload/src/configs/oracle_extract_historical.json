@@ -1,0 +1,50 @@
+{
+  "entity_name": "TODO_Historical_Entity",
+  "jdbc": {
+    "database": "oracle",
+    "driver": "oracle.jdbc.driver.OracleDriver",
+    "connection_by_env": {
+      "dev": "jdbc:oracle:thin:@10.201.196.213:1521/DTMSPB20.publix.com",
+      "tst": "jdbc:oracle:thin:@10.200.199.101:1521/TTMSPB3.publix.com",
+      "stg": "jdbc:oracle:thin:@10.106.70.223:1521/STMSPB20",
+      "prd": "jdbc:oracle:thin:@10.104.70.223:1521/PTMSPB10.publix.com"
+    },
+    "secret_scope_by_env": {
+      "dev": "cutdkyvtdbwss0tdpsxx01",
+      "tst": "cuttkyvtdbwss0tdpsxx01",
+      "stg": "cutskyvtdbwss0tdpsxx01",
+      "prd": "cutpkyvtdbwss0tdpsxx01"
+    },
+    "username_by_env": {
+      "dev": "utdatad",
+      "tst": "utdatat",
+      "stg": "utdatas",
+      "prd": "utdatap"
+    },
+    "password_key_by_env": {
+      "dev": "UTDATAD-password",
+      "tst": "UTDATAT-password",
+      "stg": "UTDATAS-password",
+      "prd": "UTDATAP-password"
+    },
+    "options": {
+      "numPartitions": 1,
+      "fetchsize": 1000,
+      "sessionTimeZone": "America/New_York"
+    }
+  },
+  "extract": {
+    "query_by_env": {
+      "dev": "__REPLACE_WITH_HISTORICAL_DEV_QUERY__",
+      "tst": "__REPLACE_WITH_HISTORICAL_TST_QUERY__",
+      "stg": "__REPLACE_WITH_HISTORICAL_STG_QUERY__",
+      "prd": "__REPLACE_WITH_HISTORICAL_PRD_QUERY__"
+    },
+    "temp_view_name": "oracle_extract_historical_preview",
+    "validation_row_limit": 100
+  },
+  "incremental": {
+    "enabled": false,
+    "watermark_column": "LAST_UPDATED_DTTM"
+  }
+}

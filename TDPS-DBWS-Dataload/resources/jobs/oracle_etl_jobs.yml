@@ -1,0 +1,355 @@
+resources:
+  jobs:
+    TDPS_Mod_Initial_Load:
+      name: TDPS Mod Initial Load
+      parameters:
+        quartz_cron_expression: ${var.Transactional_Cron_Schedule}
+        timezone_id: ${var.Job_Timezone}
+        pause_status: PAUSED
+      parameters:
+        - name: entity_name
+          default: ""
+      job_clusters:
+        - job_cluster_key: Oracle_ETL_Cluster
+          new_cluster:
+            cluster_name: ''
+            spark_version: 14.3.x-scala2.12
+            azure_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK_AZURE
+              spot_bid_max_price: -1
+            node_type_id: Standard_D4ds_v5
+            spark_env_vars:
+              PYSPARK_PYTHON: /databricks/python3/bin/python3
+              Databricks_Env: ${var.Databricks_Env}
+              Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+              Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+              Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+            enable_elastic_disk: true
+            data_security_mode: USER_ISOLATION
+            num_workers: 4
+      tasks:
+        - task_key: Extract_Transactional
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Extracts_Wrapper
+            source: WORKSPACE
+            base_parameters:
+              load_mode: transactional
+              source_config_path: ${var.Transactional_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: '{{job.parameters.entity_name}}'
+              watermark_column: ${var.Watermark_Column}
+              transactional_window_minutes: ${var.Transactional_Window_Minutes}
+          job_cluster_key: Oracle_ETL_Cluster
+          libraries:
+            - jar: ${var.Oracle_Jdbc_Jar_Path}
+        - task_key: Transform_Transactional
+          depends_on:
+            - task_key: Extract_Transactional
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Transforms_Wrapper
+            source: WORKSPACE
+            base_parameters:
+              load_mode: transactional
+              source_config_path: ${var.Transactional_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: '{{job.parameters.entity_name}}'
+          job_cluster_key: Oracle_ETL_Cluster
+        - task_key: Complete_Transactional
+          depends_on:
+            - task_key: Transform_Transactional
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Completion
+            source: WORKSPACE
+            base_parameters:
+              load_mode: transactional
+              source_config_path: ${var.Transactional_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: '{{job.parameters.entity_name}}'
+          job_cluster_key: Oracle_ETL_Cluster
+      queue:
+        enabled: true
+      timeout_seconds: 86400
+
+    TDPS_Mod_Daily_Load:
+      name: TDPS Mod Daily Load
+      schedule:
+        quartz_cron_expression: ${var.Daily_Cron_Schedule}
+        timezone_id: ${var.Job_Timezone}
+        pause_status: PAUSED
+      parameters:
+        - name: entity_name
+          default: ""
+      job_clusters:
+        - job_cluster_key: Oracle_ETL_Cluster
+          new_cluster:
+            cluster_name: ''
+            spark_version: 14.3.x-scala2.12
+            azure_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK_AZURE
+              spot_bid_max_price: -1
+            node_type_id: Standard_D4ds_v5
+            spark_env_vars:
+              PYSPARK_PYTHON: /databricks/python3/bin/python3
+              Databricks_Env: ${var.Databricks_Env}
+              Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+              Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+              Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+            enable_elastic_disk: true
+            data_security_mode: USER_ISOLATION
+            num_workers: 4
+      tasks:
+        - task_key: Extract_Daily
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Extracts_Wrapper
+            source: WORKSPACE
+            base_parameters:
+              load_mode: daily
+              source_config_path: ${var.Daily_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: '{{job.parameters.entity_name}}'
+              excluded_entity_names: Facility
+          job_cluster_key: Oracle_ETL_Cluster
+          libraries:
+            - jar: ${var.Oracle_Jdbc_Jar_Path}
+        - task_key: Transform_Daily
+          depends_on:
+            - task_key: Extract_Daily
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Transforms_Wrapper
+            source: WORKSPACE
+            base_parameters:
+              load_mode: daily
+              source_config_path: ${var.Daily_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: '{{job.parameters.entity_name}}'
+              excluded_entity_names: Facility
+          job_cluster_key: Oracle_ETL_Cluster
+        - task_key: Complete_Daily
+          depends_on:
+            - task_key: Transform_Daily
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Completion
+            source: WORKSPACE
+            base_parameters:
+              load_mode: daily
+              source_config_path: ${var.Daily_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: '{{job.parameters.entity_name}}'
+              excluded_entity_names: Facility
+          job_cluster_key: Oracle_ETL_Cluster
+      queue:
+        enabled: true
+      timeout_seconds: 86400
+
+    TDPS_Mod_Historical_Backfill:
+      name: TDPS Mod Historical Backfill
+      job_clusters:
+        - job_cluster_key: Oracle_ETL_Cluster
+          new_cluster:
+            cluster_name: ''
+            spark_version: 14.3.x-scala2.12
+            azure_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK_AZURE
+              spot_bid_max_price: -1
+            node_type_id: Standard_D4ds_v5
+            spark_env_vars:
+              PYSPARK_PYTHON: /databricks/python3/bin/python3
+              Databricks_Env: ${var.Databricks_Env}
+              Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+              Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+              Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+            enable_elastic_disk: true
+            data_security_mode: USER_ISOLATION
+            num_workers: 4
+      parameters:
+        - name: entity_name
+          default: ""
+        - name: historical_cutoff_type
+          default: ${var.Historical_Cutoff_Type_Default}
+        - name: historical_cutoff_value
+          default: ${var.Historical_Cutoff_Value_Default}
+        - name: historical_cutoff_end_value
+          default: ${var.Historical_Cutoff_End_Value_Default}
+      tasks:
+        - task_key: Extract_Historical
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Extracts_Wrapper
+            source: WORKSPACE
+            base_parameters:
+              load_mode: historical
+              source_config_path: ${var.Historical_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: '{{job.parameters.entity_name}}'
+          job_cluster_key: Oracle_ETL_Cluster
+          libraries:
+            - jar: ${var.Oracle_Jdbc_Jar_Path}
+        - task_key: Transform_Historical
+          depends_on:
+            - task_key: Extract_Historical
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Transforms_Wrapper
+            source: WORKSPACE
+            base_parameters:
+              load_mode: historical
+              source_config_path: ${var.Historical_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: '{{job.parameters.entity_name}}'
+          job_cluster_key: Oracle_ETL_Cluster
+        - task_key: Complete_Historical
+          depends_on:
+            - task_key: Transform_Historical
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Completion
+            source: WORKSPACE
+            base_parameters:
+              load_mode: historical
+              source_config_path: ${var.Historical_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: '{{job.parameters.entity_name}}'
+          job_cluster_key: Oracle_ETL_Cluster
+      queue:
+        enabled: true
+      timeout_seconds: 86400
+
+    TDPS_Mod_Daily_Sequential_Runner:
+      name: TDPS Mod Daily Sequential Runner
+      parameters:
+        - name: entity_name
+          default: ""
+        - name: excluded_entity_names
+          default: Facility
+      job_clusters:
+        - job_cluster_key: Oracle_ETL_Cluster
+          new_cluster:
+            cluster_name: ''
+            spark_version: 14.3.x-scala2.12
+            azure_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK_AZURE
+              spot_bid_max_price: -1
+            node_type_id: Standard_D4ds_v5
+            spark_env_vars:
+              PYSPARK_PYTHON: /databricks/python3/bin/python3
+              Databricks_Env: ${var.Databricks_Env}
+              Daily_Source_Config_Path: ${var.Daily_Source_Config_Path}
+              Transactional_Source_Config_Path: ${var.Transactional_Source_Config_Path}
+              Historical_Source_Config_Path: ${var.Historical_Source_Config_Path}
+              Target_Config_Path: ${var.Target_Config_Path}
+              Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+              Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+              Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+            enable_elastic_disk: true
+            data_security_mode: USER_ISOLATION
+            num_workers: 4
+      tasks:
+        - task_key: Run_Daily_Sequential_Entity_Pipeline
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Entity_Sequential_Runner
+            source: WORKSPACE
+            base_parameters:
+              load_mode: daily
+              source_config_path: ${var.Daily_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: '{{job.parameters.entity_name}}'
+              excluded_entity_names: '{{job.parameters.excluded_entity_names}}'
+              continue_on_error: 'true'
+          job_cluster_key: Oracle_ETL_Cluster
+          libraries:
+            - jar: ${var.Oracle_Jdbc_Jar_Path}
+      queue:
+        enabled: true
+      timeout_seconds: 86400
+
+    TDPS_Mod_Transactional_Sequential_Runner:
+      name: TDPS Mod Transactional Sequential Runner
+      parameters:
+        - name: entity_name
+          default: ""
+      job_clusters:
+        - job_cluster_key: Oracle_ETL_Cluster
+          new_cluster:
+            cluster_name: ''
+            spark_version: 14.3.x-scala2.12
+            azure_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK_AZURE
+              spot_bid_max_price: -1
+            node_type_id: Standard_D4ds_v5
+            spark_env_vars:
+              PYSPARK_PYTHON: /databricks/python3/bin/python3
+              Databricks_Env: ${var.Databricks_Env}
+              Daily_Source_Config_Path: ${var.Daily_Source_Config_Path}
+              Transactional_Source_Config_Path: ${var.Transactional_Source_Config_Path}
+              Historical_Source_Config_Path: ${var.Historical_Source_Config_Path}
+              Target_Config_Path: ${var.Target_Config_Path}
+              Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+              Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+              Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+            enable_elastic_disk: true
+            data_security_mode: USER_ISOLATION
+            num_workers: 4
+      tasks:
+        - task_key: Run_Transactional_Sequential_Entity_Pipeline
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Entity_Sequential_Runner
+            source: WORKSPACE
+            base_parameters:
+              load_mode: transactional
+              source_config_path: ${var.Transactional_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: '{{job.parameters.entity_name}}'
+              continue_on_error: 'true'
+          job_cluster_key: Oracle_ETL_Cluster
+          libraries:
+            - jar: ${var.Oracle_Jdbc_Jar_Path}
+      queue:
+        enabled: true
+      timeout_seconds: 86400
+
+    TDPS_Mod_Azure_SQL_SP_Smoke_Test:
+      name: TDPS Mod Azure SQL SP Smoke Test
+      parameters:
+        - name: workspace_name
+          default: ""
+        - name: sample_table_name
+          default: dbo.Driver
+        - name: smoke_table_name
+          default: dbo.DatabricksServicePrincipalSmokeTest
+        - name: perform_write_smoke
+          default: "true"
+      job_clusters:
+        - job_cluster_key: Azure_SQL_SP_Smoke_Test_Cluster
+          new_cluster:
+            cluster_name: ''
+            spark_version: 14.3.x-scala2.12
+            azure_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK_AZURE
+              spot_bid_max_price: -1
+            node_type_id: Standard_D4ds_v5
+            spark_env_vars:
+              PYSPARK_PYTHON: /databricks/python3/bin/python3
+              Databricks_Env: ${var.Databricks_Env}
+            enable_elastic_disk: true
+            data_security_mode: USER_ISOLATION
+            num_workers: 1
+      tasks:
+        - task_key: Run_Azure_SQL_SP_Smoke_Test
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Azure_SQL_SP_Smoke_Test
+            source: WORKSPACE
+            base_parameters:
+              databricks_env: ${var.Databricks_Env}
+              workspace_name: '{{job.parameters.workspace_name}}'
+              target_config_path: ${var.Target_Config_Path}
+              sample_table_name: '{{job.parameters.sample_table_name}}'
+              smoke_table_name: '{{job.parameters.smoke_table_name}}'
+              perform_write_smoke: '{{job.parameters.perform_write_smoke}}'
+          job_cluster_key: Azure_SQL_SP_Smoke_Test_Cluster
+      queue:
+        enabled: true
+      timeout_seconds: 3600
+

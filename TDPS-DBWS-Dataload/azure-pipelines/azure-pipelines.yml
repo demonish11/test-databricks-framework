@@ -1,0 +1,103 @@
+trigger: none
+
+pool: ubuntu-latest-publix
+
+stages:
+- stage: Dev
+  displayName: Dev
+  jobs:
+  - template: templates/deploy_template.yml
+    parameters:
+      publixEnvironment: DEV_East
+      azdoEnvironment: DEV_S0TDPSXX
+      azureSubscription: s0tdpsxx-01-dev
+      keyVaultName: cutdkyvtdbwss0tdpsxx01
+      patSecretName: cutddbwstransp01-databricks-pat
+      pythonVersion: 3.x
+      cliVersion: v0.297.2
+      databricksHost: https://adb-3618393276190872.12.azuredatabricks.net/
+  - template: templates/deploy_template.yml
+    parameters:
+      publixEnvironment: DEV_Central
+      azdoEnvironment: DEV_S0TDPSXX
+      azureSubscription: s0tdpsxx-01-dev
+      keyVaultName: cutdkyvtdbwss0tdpsxx01
+      patSecretName: cucddbwstransp01-databricks-pat
+      pythonVersion: 3.x
+      cliVersion: v0.297.2
+      databricksHost: https://adb-840646084492194.14.azuredatabricks.net/
+
+- stage: Tst
+  displayName: Tst
+  dependsOn: Dev
+  jobs:
+  - template: templates/deploy_template.yml
+    parameters:
+      publixEnvironment: TST_East
+      azdoEnvironment: TST_S0TDPSXX
+      azureSubscription: s0tdpsxx-01-tst
+      keyVaultName: cuttkyvtdbwss0tdpsxx01
+      patSecretName: cuttdbwstransp01-databricks-pat
+      pythonVersion: 3.x
+      cliVersion: v0.297.2
+      databricksHost: https://adb-3674853172059167.7.azuredatabricks.net/
+  - template: templates/deploy_template.yml
+    parameters:
+      publixEnvironment: TST_Central
+      azdoEnvironment: TST_S0TDPSXX
+      azureSubscription: s0tdpsxx-01-tst
+      keyVaultName: cuttkyvtdbwss0tdpsxx01
+      patSecretName: cuctdbwstransp01-databricks-pat
+      pythonVersion: 3.x
+      cliVersion: v0.297.2
+      databricksHost: https://adb-1718286213798553.13.azuredatabricks.net/
+
+# - stage: Stg
+#   displayName: Stg
+#   dependsOn: Tst
+#   jobs:
+#   - template: templates/deploy_template.yml
+#     parameters:
+#       publixEnvironment: STG_East
+#       azdoEnvironment: STG_S0TDPSXX
+#       azureSubscription: s0tdpsxx-01-stg
+#       keyVaultName: cutskyvtdbwss0tdpsxx01
+#       patSecretName: cutsdbwstransp01-databricks-pat
+#       pythonVersion: 3.x
+#       cliVersion: v0.297.2
+#       databricksHost: https://adb-3845968449054344.4.azuredatabricks.net/
+#   - template: templates/deploy_template.yml
+#     parameters:
+#       publixEnvironment: STG_Central
+#       azdoEnvironment: STG_S0TDPSXX
+#       azureSubscription: s0tdpsxx-01-stg
+#       keyVaultName: cutskyvtdbwss0tdpsxx01
+#       patSecretName: cucsdbwstransp01-databricks-pat
+#       pythonVersion: 3.x
+#       cliVersion: v0.297.2
+#       databricksHost: https://adb-4442784722564952.12.azuredatabricks.net/
+
+# - stage: Prd
+#   displayName: Prd
+#   dependsOn: Stg
+#   jobs:
+#   - template: templates/deploy_template.yml
+#     parameters:
+#       publixEnvironment: PRD_East
+#       azdoEnvironment: PRD_S0TDPSXX
+#       azureSubscription: s0tdpsxx-01-prd
+#       keyVaultName: cutpkyvtdbwss0tdpsxx01
+#       patSecretName: cutpdbwstransp01-databricks-pat
+#       pythonVersion: 3.x
+#       cliVersion: v0.297.2
+#       databricksHost: https://adb-2699047964193452.12.azuredatabricks.net/
+#   - template: templates/deploy_template.yml
+#     parameters:
+#       publixEnvironment: PRD_Central
+#       azdoEnvironment: PRD_S0TDPSXX
+#       azureSubscription: s0tdpsxx-01-prd
+#       keyVaultName: cutpkyvtdbwss0tdpsxx01
+#       patSecretName: cucpdbwstransp01-databricks-pat
+#       pythonVersion: 3.x
+#       cliVersion: v0.297.2
+#       databricksHost: https://adb-987189095019215.15.azuredatabricks.net/

@@ -1,0 +1,116 @@
+parameters:
+- name: publixEnvironment
+  type: string
+- name: azdoEnvironment
+  type: string
+- name: azureSubscription
+  type: string
+- name: keyVaultName
+  type: string
+- name: patSecretName
+  type: string
+- name: pythonVersion
+  type: string
+  default: 3.x
+- name: cliVersion
+  type: string
+  default: v0.297.2
+- name: databricksHost
+  type: string
+- name: repoDABsPath
+  type: string
+  default: ''
+
+jobs:
+- deployment: Deploy_${{ replace(parameters.publixEnvironment, '_', '') }}
+  displayName: Deploy ${{ parameters.publixEnvironment }}
+  environment: ${{ parameters.azdoEnvironment }}
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - checkout: self
+          clean: true
+
+        - task: AzureKeyVault@2
+          inputs:
+            azureSubscription: ${{ parameters.azureSubscription }}
+            KeyVaultName: ${{ parameters.keyVaultName }}
+            SecretsFilter: ${{ parameters.patSecretName }}
+            RunAsPreJob: true
+
+        - task: UsePythonVersion@0
+          inputs:
+            versionSpec: ${{ parameters.pythonVersion }}
+            addToPath: true
+            architecture: x64
+
+        - script: |
+            python --version
+            which python
+          displayName: Check Python Environment
+
+        - task: Bash@3
+          displayName: Install Databricks CLI
+          inputs:
+            targetType: inline
+            script: |
+              sudo rm -f /usr/local/bin/databricks
+              curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/${{ parameters.cliVersion }}/install.sh | sh
+              echo "##vso[task.setvariable variable=DATABRICKS_CLI_PATH;]/usr/local/bin/databricks"
+              /usr/local/bin/databricks -v
+
+        - task: PowerShell@2
+          displayName: Configure Databricks CLI Variables
+          inputs:
+            targetType: inline
+            pwsh: true
+            script: |
+              $token = "${{ format('$({0})', parameters.patSecretName) }}"
+
+              if ([string]::IsNullOrWhiteSpace($token)) {
+                throw "Azure Key Vault secret '${{ parameters.patSecretName }}' was not loaded into the pipeline context."
+              }
+
+              Write-Host "##vso[task.setvariable variable=DATABRICKS_HOST;]${{ parameters.databricksHost }}"
+              Write-Host "##vso[task.setvariable variable=DATABRICKS_TOKEN;issecret=true]$token"
+              Write-Host "##vso[task.setvariable variable=DATABRICKS_CLI_DO_NOT_EXECUTE_NEWER_VERSION;]0"
+              Write-Host "Configured Databricks CLI for target '${{ parameters.publixEnvironment }}'."
+
+        - task: PowerShell@2
+          displayName: Databricks Bundle Validate
+          inputs:
+            targetType: inline
+            pwsh: true
+            workingDirectory: $(Build.SourcesDirectory)/${{ parameters.repoDABsPath }}
+            script: |
+              if (-not (Test-Path "$(DATABRICKS_CLI_PATH)")) {
+                throw "Databricks CLI was not found at $(DATABRICKS_CLI_PATH)."
+              }
+
+              & "$(DATABRICKS_CLI_PATH)" -v
+              & "$(DATABRICKS_CLI_PATH)" bundle --help | Out-Null
+              & "$(DATABRICKS_CLI_PATH)" bundle validate -t ${{ parameters.publixEnvironment }}
+          env:
+            DATABRICKS_HOST: $(DATABRICKS_HOST)
+            DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
+            DATABRICKS_AUTH_TYPE: pat
+            DATABRICKS_CLI_DO_NOT_EXECUTE_NEWER_VERSION: $(DATABRICKS_CLI_DO_NOT_EXECUTE_NEWER_VERSION)
+
+        - task: PowerShell@2
+          displayName: Databricks Bundle Deploy
+          inputs:
+            targetType: inline
+            pwsh: true
+            workingDirectory: $(Build.SourcesDirectory)/${{ parameters.repoDABsPath }}
+            script: |
+              if (-not (Test-Path "$(DATABRICKS_CLI_PATH)")) {
+                throw "Databricks CLI was not found at $(DATABRICKS_CLI_PATH)."
+              }
+
+              & "$(DATABRICKS_CLI_PATH)" bundle deploy -t ${{ parameters.publixEnvironment }} --force-lock
+          env:
+            DATABRICKS_HOST: $(DATABRICKS_HOST)
+            DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
+            DATABRICKS_AUTH_TYPE: pat
+            DATABRICKS_CLI_DO_NOT_EXECUTE_NEWER_VERSION: $(DATABRICKS_CLI_DO_NOT_EXECUTE_NEWER_VERSION)

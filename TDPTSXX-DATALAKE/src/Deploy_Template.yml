@@ -1,0 +1,106 @@
+parameters:
+- name: publixEnvironment
+  type: string
+- name: azdoEnvironment
+  type: string
+- name: azureSubscription
+  type: string
+- name: keyVaultName
+  type: string
+- name: patSecretName
+  type: string
+- name: pythonVersion
+  type: string
+  default: '3.x'
+- name: cli_version
+  type: string
+- name: databricksUserAcct
+  type: string
+- name: databricksHost
+  type: string
+
+jobs:
+- deployment: resourceDeploy_${{parameters.publixEnvironment}}_job
+  displayName: ${{parameters.publixEnvironment}} databricks job
+  environment: ${{parameters.azdoEnvironment}} 
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - checkout: self
+          clean: true
+
+        - task: AzureKeyVault@2
+          inputs:
+            azureSubscription: ${{parameters.azureSubscription}}
+            KeyVaultName: ${{parameters.KeyVaultName}}
+            SecretsFilter: ${{parameters.patSecretName}}
+            RunAsPreJob: true    	
+
+        - task: UsePythonVersion@0
+          inputs:
+            versionSpec: ${{parameters.pythonVersion}}
+            addToPath: true
+            architecture: 'x64'
+
+        - script: |
+            # Check Python environment
+            python --version
+            which python
+            pip list
+          displayName: 'Check Python Environment'
+
+        - task: Bash@3
+          displayName: 'Install Databricks CLI'
+          inputs:
+            targetType: 'inline'
+            script: |
+              sudo rm '/usr/local/bin/databricks'   
+              curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/${{parameters.cli_version}}/install.sh | sh
+
+        - task: PowerShell@2
+          displayName: 'Databricks Setup Environment Variables'
+          inputs:
+            targetType: 'inline'
+            pwsh: true
+            script: |
+              $workingDirectory = $env:SYSTEM_DEFAULTWORKINGDIRECTORY
+              $artifactAlias = $env:RELEASE_PRIMARYARTIFACTSOURCEALIAS
+              $rootDirectory = "$workingDirectory/$artifactAlias"
+              $rootDirectoryEnv = "PBLX_ARTIFACTS_ROOT"
+              $env:DATABRICKS_CLI_DO_NOT_EXECUTE_NEWER_VERSION = "0"
+              $env:UC_CATALOG="VOL_PATH VALUE"
+              $env:VOL_PATH="VOL_PATH VALUE"
+
+              Write-Host "##vso[task.setvariable variable=DATABRICKS_ENV;]${{parameters.publixEnvironment}}"
+
+              # Setup Databricks CLI environment variable
+              Write-Host "##vso[task.setvariable variable=DATABRICKS_TOKEN;]$(${{parameters.patSecretName}})"
+              Write-Host "##vso[task.setvariable variable=DATABRICKS_USER_ACCOUNT;]${{parameters.databricksUserAcct}}"
+              Write-Host "##vso[task.setvariable variable=DATABRICKS_HOST;]${{parameters.databricksHost}}"      
+              # Write-Host "##vso[task.setvariable variable=DATABRICKS_CLI_DO_NOT_EXECUTE_NEWER_VERSION;]1"
+
+        - task: PowerShell@2
+          displayName: 'Databricks Bundle Validate'
+          inputs:
+            targetType: 'inline'
+            workingDirectory: $(Build.SourcesDirectory)/src
+            script: |            
+                databricks bundle validate -t ${{parameters.publixEnvironment}}
+
+        - task: PowerShell@2
+          displayName: 'Databricks Bundle Destroy'
+          inputs:
+            targetType: 'inline'
+            workingDirectory: $(Build.SourcesDirectory)/src
+            script: |            
+                databricks bundle destroy -t ${{parameters.publixEnvironment}} --auto-approve
+          enabled: false
+
+        - task: PowerShell@2
+          displayName: 'Databricks Bundle Deploy'
+          inputs:
+            targetType: 'inline'
+            workingDirectory: $(Build.SourcesDirectory)/src
+            script: |            
+                databricks bundle deploy -t ${{parameters.publixEnvironment}} --force-lock
