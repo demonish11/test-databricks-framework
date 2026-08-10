@@ -29,7 +29,7 @@
     },
     "Target_File_Path": "/Publix/Transportation/Facility/Raw/",
     "Target_File_Format": "Delta",
-    "Target_Entity": "SiteOverrideStandard",
+    "Target_Entity": "TDS_SiteOverrideStandard",
     "Target_UC_Schema": "transportation_facility_raw",
     "Target_Unity_Catalog": {
       "dev": "ent_dtlk_dev",
@@ -74,7 +74,7 @@
     },
     "Target_File_Path": "/Publix/Transportation/Reference/Raw/",
     "Target_File_Format": "Delta",
-    "Target_Entity": "ADGroup",
+    "Target_Entity": "TDS_ADGroup",
     "Target_UC_Schema": "transportation_reference_raw",
     "Target_Unity_Catalog": {
       "dev": "ent_dtlk_dev",
