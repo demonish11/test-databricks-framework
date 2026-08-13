@@ -1,0 +1,58 @@
+targets:
+  TST_East:
+    workspace:
+      host: https://adb-3674853172059167.7.azuredatabricks.net/
+      root_path: /Workspace/Shared/S0TDPSXX-AzureSql-ETL
+    run_as:
+      service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+    variables:
+      Databricks_Env: tst
+      Loadtracker_Target_Catalog: ent_dtlk_tst
+      Loadtracker_Target_Schema: monitoring
+      Loadtracker_Target_Table: load_tracking_s0transportxxx
+      Daily_Source_Config_Path: ${workspace.root_path}/files/src/configs/azure_sql_extract_daily.json
+      Transactional_Source_Config_Path: ${workspace.root_path}/files/src/configs/azure_sql_extract_hourly.json
+      Target_Config_Path: ${workspace.root_path}/files/src/configs/azure_sql_source_stub.json
+    resources:
+      jobs:
+        S0TDPSXX_AzureSql_ETL_Hourly:
+          permissions:
+            - service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_TST
+              level: CAN_MANAGE
+        S0TDPSXX_AzureSql_ETL_Daily:
+          permissions:
+            - service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_TST
+              level: CAN_MANAGE
+
+  TST_Central:
+    workspace:
+      host: https://adb-1718286213798553.13.azuredatabricks.net/
+      root_path: /Workspace/Shared/S0TDPSXX-AzureSql-ETL
+    run_as:
+      service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+    variables:
+      Databricks_Env: tst
+      Loadtracker_Target_Catalog: entc_dtlk_tst
+      Loadtracker_Target_Schema: monitoring
+      Loadtracker_Target_Table: load_tracking_s0transportxxx
+      Daily_Source_Config_Path: ${workspace.root_path}/files/src/configs/azure_sql_extract_daily.json
+      Transactional_Source_Config_Path: ${workspace.root_path}/files/src/configs/azure_sql_extract_hourly.json
+      Target_Config_Path: ${workspace.root_path}/files/src/configs/azure_sql_source_stub.json
+    resources:
+      jobs:
+        S0TDPSXX_AzureSql_ETL_Hourly:
+          permissions:
+            - service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_TST
+              level: CAN_MANAGE
+        S0TDPSXX_AzureSql_ETL_Daily:
+          permissions:
+            - service_principal_name: 64970511-8cc5-42b3-b949-15f91989b067
+              level: CAN_MANAGE
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_TST
+              level: CAN_MANAGE

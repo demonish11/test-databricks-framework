@@ -1,0 +1,55 @@
+trigger: none
+
+pool: ubuntu-latest-publix
+
+stages:
+- stage: Dev
+  displayName: Dev
+  jobs:
+  - template: templates/deploy_template.yml
+    parameters:
+      publixEnvironment: DEV_East
+      azdoEnvironment: DEV_S0TDPSXX
+      azureSubscription: s0tdpsxx-01-dev
+      keyVaultName: cutdkyvtdbwss0tdpsxx01
+      patSecretName: cutddbwstransp01-databricks-pat
+      pythonVersion: 3.x
+      cliVersion: v0.297.2
+      databricksHost: https://adb-3618393276190872.12.azuredatabricks.net/
+  - template: templates/deploy_template.yml
+    parameters:
+      publixEnvironment: DEV_Central
+      azdoEnvironment: DEV_S0TDPSXX
+      azureSubscription: s0tdpsxx-01-dev
+      keyVaultName: cutdkyvtdbwss0tdpsxx01
+      patSecretName: cucddbwstransp01-databricks-pat
+      pythonVersion: 3.x
+      cliVersion: v0.297.2
+      databricksHost: https://adb-840646084492194.14.azuredatabricks.net/
+
+- stage: Tst
+  displayName: Tst
+  dependsOn: Dev
+  jobs:
+  - template: templates/deploy_template.yml
+    parameters:
+      publixEnvironment: TST_East
+      azdoEnvironment: TST_S0TDPSXX
+      azureSubscription: s0tdpsxx-01-tst
+      keyVaultName: cuttkyvtdbwss0tdpsxx01
+      patSecretName: cuttdbwstransp01-databricks-pat
+      pythonVersion: 3.x
+      cliVersion: v0.297.2
+      databricksHost: https://adb-3674853172059167.7.azuredatabricks.net/
+  - template: templates/deploy_template.yml
+    parameters:
+      publixEnvironment: TST_Central
+      azdoEnvironment: TST_S0TDPSXX
+      azureSubscription: s0tdpsxx-01-tst
+      keyVaultName: cuttkyvtdbwss0tdpsxx01
+      patSecretName: cuctdbwstransp01-databricks-pat
+      pythonVersion: 3.x
+      cliVersion: v0.297.2
+      databricksHost: https://adb-1718286213798553.13.azuredatabricks.net/
+
+# Stg/Prd stages can be enabled when targets/stg.yml and targets/prd.yml are populated.

@@ -1,0 +1,40 @@
+variables:
+  Databricks_Env:
+    default: dev
+    description: Deployment environment code (dev/tst/stg/prd).
+
+  Loadtracker_Target_Catalog:
+    default: ent_dtlk_dev
+    description: Unity Catalog catalog for load tracking.
+
+  Loadtracker_Target_Schema:
+    default: monitoring
+    description: Schema for load tracking objects.
+
+  Loadtracker_Target_Table:
+    default: load_tracking_s0transportxxx
+    description: Table used to persist load tracking watermarks.
+
+  Job_Timezone:
+    default: America/New_York
+    description: Timezone for scheduled jobs.
+
+  Hourly_Cron_Schedule:
+    default: '12 15 * * * ?'
+    description: Hourly/transactional Azure SQL extract schedule.
+
+  Daily_Cron_Schedule:
+    default: '9 0 22 * * ?'
+    description: Daily Azure SQL extract schedule.
+
+  Daily_Source_Config_Path:
+    default: ${workspace.root_path}/files/src/configs/azure_sql_extract_daily.json
+    description: Path to daily Azure SQL entity configuration.
+
+  Transactional_Source_Config_Path:
+    default: ${workspace.root_path}/files/src/configs/azure_sql_extract_hourly.json
+    description: Path to hourly/transactional Azure SQL entity configuration.
+
+  Target_Config_Path:
+    default: ${workspace.root_path}/files/src/configs/azure_sql_source_stub.json
+    description: Path to Azure SQL source connection/auth stub.

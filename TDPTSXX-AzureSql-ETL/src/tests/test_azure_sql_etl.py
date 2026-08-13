@@ -1,0 +1,232 @@
+"""Unit tests for azure_sql_etl configuration and pure helpers.
+
+These tests run without Databricks/Spark. JDBC token retrieval and Delta writes
+require a Databricks runtime and are validated statically / by config contract.
+"""
+
+from __future__ import annotations
+
+import ast
+import importlib.util
+import json
+import os
+import re
+import sys
+import unittest
+from pathlib import Path
+from unittest import mock
+
+
+ROOT = Path(__file__).resolve().parents[1]  # .../TDPTSXX-AzureSql-ETL/src
+PROJECT_ROOT = ROOT.parent  # .../TDPTSXX-AzureSql-ETL
+CONFIGS = ROOT / "configs"
+UTILS = ROOT / "utils"
+DATALAKE_SRC = PROJECT_ROOT.parent / "TDPTSXX-DATALAKE" / "src"
+
+
+def _load_module(module_name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    # Strip Databricks notebook markers for local import.
+    source = path.read_text(encoding="utf-8")
+    source = re.sub(r"(?m)^# MAGIC.*\n?", "", source)
+    source = re.sub(r"(?m)^# COMMAND -+\n?", "", source)
+    source = source.replace("# Databricks notebook source\n", "")
+    code = compile(source, str(path), "exec")
+    sys.modules[module_name] = module
+    exec(code, module.__dict__)
+    return module
+
+
+class ConfigLoadingTests(unittest.TestCase):
+    def test_hourly_and_daily_configs_load(self):
+        hourly = json.loads((CONFIGS / "azure_sql_extract_hourly.json").read_text())
+        daily = json.loads((CONFIGS / "azure_sql_extract_daily.json").read_text())
+        stub = json.loads((CONFIGS / "azure_sql_source_stub.json").read_text())
+
+        self.assertEqual(hourly["time_grain"], "HOURLY")
+        self.assertEqual(daily["time_grain"], "DAILY")
+        self.assertIn("SiteOverrideStandard", hourly["entities"])
+        self.assertIn("ADGroup", hourly["entities"])
+        self.assertIn("SiteOverrideStandard", daily["entities"])
+        self.assertIn("ADGroup", daily["entities"])
+        self.assertEqual(stub["authentication"]["mode"], "service_principal")
+        self.assertEqual(stub["authentication"]["secret_key"], "database-sp-sec")
+        self.assertIn("connection", stub)
+        self.assertNotIn("client_secret", json.dumps(stub))
+
+    def test_azure_sql_source_recognized(self):
+        hourly = json.loads((CONFIGS / "azure_sql_extract_hourly.json").read_text())
+        for entity in hourly["entities"].values():
+            self.assertEqual(entity["jdbc"]["database"], "azure_sql")
+            self.assertEqual(entity["jdbc"]["connection_source"], "target_config")
+
+    def test_hourly_incremental_and_merge_flags(self):
+        hourly = json.loads((CONFIGS / "azure_sql_extract_hourly.json").read_text())
+        for entity in hourly["entities"].values():
+            self.assertTrue(entity["incremental"]["enabled"])
+            self.assertEqual(entity["incremental"]["watermark_column"], "UpdatedDateTime")
+            self.assertTrue(entity["target"]["raw_merge_on_primary_key"])
+            self.assertEqual(entity["target"]["dedupe_order_columns"], ["UpdatedDateTime", "CreatedDateTime"])
+
+    def test_daily_full_load_flags(self):
+        daily = json.loads((CONFIGS / "azure_sql_extract_daily.json").read_text())
+        for entity in daily["entities"].values():
+            self.assertFalse(entity["incremental"]["enabled"])
+            self.assertFalse(entity["target"]["raw_merge_on_primary_key"])
+
+    def test_unity_catalog_conventions_preserved(self):
+        hourly = json.loads((CONFIGS / "azure_sql_extract_hourly.json").read_text())
+        site = hourly["entities"]["SiteOverrideStandard"]["target"]
+        adgroup = hourly["entities"]["ADGroup"]["target"]
+
+        self.assertEqual(site["target_entity"], "TDS_SiteOverrideStandard")
+        self.assertEqual(site["target_uc_schema"], "transportation_facility_raw")
+        self.assertEqual(site["target_unity_catalog_by_env"]["dev"], "ent_dtlk_dev")
+        self.assertEqual(site["secondary_unity_catalog_by_env"]["dev"], "entc_dtlk_dev")
+        self.assertEqual(adgroup["target_entity"], "TDS_ADGroup")
+        self.assertEqual(adgroup["target_uc_schema"], "transportation_reference_raw")
+        self.assertTrue(site["target_file_path"].endswith("/Raw/"))
+        self.assertEqual(site["target_file_format"], "Delta")
+
+
+class HelperLogicTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.config_utils = _load_module("azure_sql_etl_config_utils", UTILS / "config_utils.py")
+        cls.jdbc_utils = _load_module("azure_sql_etl_jdbc_utils", UTILS / "jdbc_utils.py")
+        cls.delta_utils = _load_module("azure_sql_etl_delta_utils", UTILS / "delta_utils.py")
+
+    def test_entity_configs_resolved(self):
+        hourly = json.loads((CONFIGS / "azure_sql_extract_hourly.json").read_text())
+        entities = self.config_utils.get_entity_configs(hourly, exclude_dependency_only=True)
+        names = [name for name, _ in entities]
+        self.assertEqual(names, ["SiteOverrideStandard", "ADGroup"])
+
+    def test_incremental_query_uses_datetime2(self):
+        query = self.config_utils.build_incremental_extract_query(
+            "SELECT 1 AS UpdatedDateTime FROM dbo.T",
+            "UpdatedDateTime",
+            "2024-01-02 03:04:05.678",
+        )
+        self.assertIn("CAST('2024-01-02 03:04:05.678' AS datetime2)", query)
+        self.assertIn("INCREMENTAL_SOURCE", query)
+
+    def test_jdbc_options_use_secret_scope_not_hardcoded_secret(self):
+        stub = json.loads((CONFIGS / "azure_sql_source_stub.json").read_text())
+        entity = {
+            "jdbc": {
+                "database": "azure_sql",
+                "connection_source": "target_config",
+                "options": {"fetchsize": "10000"},
+            }
+        }
+
+        fake_dbutils = mock.Mock()
+        fake_dbutils.secrets.get.return_value = "secret-value-not-logged"
+        token_payload = json.dumps({"access_token": "token-value", "expires_in": 3600}).encode("utf-8")
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read(self):
+                return token_payload
+
+        with mock.patch.object(self.jdbc_utils, "dbutils", fake_dbutils, create=True), mock.patch.object(
+            self.jdbc_utils, "urlopen", return_value=FakeResponse()
+        ):
+            options = self.jdbc_utils.build_jdbc_options(entity, "dev", target_config=stub)
+
+        self.assertIn("accessToken", options)
+        self.assertTrue(options["url"].startswith("jdbc:sqlserver://cutdasqltdps01"))
+        fake_dbutils.secrets.get.assert_called_once_with(scope="cutdkyvtdbwss0tdpsxx01", key="database-sp-sec")
+        redacted = self.jdbc_utils.redact_jdbc_options(options)
+        self.assertEqual(redacted["accessToken"], "<redacted>")
+
+    def test_delta_paths_for_dev(self):
+        hourly = json.loads((CONFIGS / "azure_sql_extract_hourly.json").read_text())
+        paths = self.delta_utils.resolve_delta_target_paths(
+            hourly["entities"]["SiteOverrideStandard"],
+            "dev",
+        )
+        self.assertEqual(
+            paths["primary_raw_table"],
+            "ent_dtlk_dev.transportation_facility_raw.TDS_SiteOverrideStandard",
+        )
+        self.assertEqual(
+            paths["primary_transform_table"],
+            "ent_dtlk_dev.transportation_facility_transform.TDS_SiteOverrideStandard",
+        )
+        self.assertEqual(
+            paths["secondary_raw_table"],
+            "entc_dtlk_dev.transportation_facility_raw.TDS_SiteOverrideStandard",
+        )
+        self.assertIn("/Facility/Raw/TDS_SiteOverrideStandard/Delta", paths["primary_raw_path"])
+        self.assertIn("/Facility/Transform/TDS_SiteOverrideStandard/Delta", paths["primary_transform_path"])
+        self.assertTrue(paths["raw_merge_on_primary_key"])
+        self.assertEqual(paths["primary_key_columns"], ["SiteOverrideStandardID"])
+
+    def test_merge_condition(self):
+        condition = self.delta_utils.build_merge_condition(["SiteOverrideStandardID"])
+        self.assertEqual(
+            condition,
+            "target.`SiteOverrideStandardID` = source.`SiteOverrideStandardID`",
+        )
+
+
+class IndependenceTests(unittest.TestCase):
+    FORBIDDEN = [
+        "Wrapper.ipynb",
+        "Runner.ipynb",
+        "Wrapper_Backfill",
+        "datamapping_AzureSql",
+        "datamapping_Hourly",
+        "datamapping_Daily",
+        "../utils/jdbc_utils",
+        "src/utils/jdbc_utils",
+        "%run ../",
+        "%run ../../",
+    ]
+
+    def test_no_legacy_orchestration_references(self):
+        offenders = []
+        code_suffixes = {".py", ".json", ".yml", ".yaml"}
+        for path in ROOT.rglob("*"):
+            if path.is_dir() or path.suffix not in code_suffixes:
+                continue
+            if "tests" in path.parts:
+                continue
+            text = path.read_text(encoding="utf-8")
+            for token in self.FORBIDDEN:
+                if token in text:
+                    offenders.append(f"{path.relative_to(ROOT)} -> {token}")
+        self.assertEqual(offenders, [], msg="Legacy references found:\n" + "\n".join(offenders))
+
+    def test_project_layout_matches_dataload_style(self):
+        self.assertTrue((PROJECT_ROOT / "databricks.yml").exists())
+        self.assertTrue((PROJECT_ROOT / "configs" / "vars_base.yml").exists())
+        self.assertTrue((PROJECT_ROOT / "resources" / "jobs" / "azure_sql_etl_jobs.yml").exists())
+        self.assertTrue((PROJECT_ROOT / "targets" / "dev.yml").exists())
+        self.assertTrue((PROJECT_ROOT / "azure-pipelines" / "azure-pipelines.yml").exists())
+        self.assertTrue((ROOT / "Entity_Sequential_Runner.py").exists())
+        self.assertTrue((CONFIGS / "azure_sql_extract_hourly.json").exists())
+
+    def test_oracle_datalake_untouched_and_legacy_azure_sql_gone(self):
+        self.assertTrue((DATALAKE_SRC / "Wrapper.ipynb").exists())
+        self.assertTrue((DATALAKE_SRC / "Runner.ipynb").exists())
+        self.assertTrue((DATALAKE_SRC / "datamapping_Hourly.json").exists())
+        self.assertFalse((DATALAKE_SRC / "datamapping_AzureSql_Hourly.json").exists())
+        self.assertFalse((DATALAKE_SRC / "azure_sql_source_stub.json").exists())
+        self.assertFalse((DATALAKE_SRC / "azure_sql_etl").exists())
+        self.assertTrue((CONFIGS / "azure_sql_source_stub.json").exists())
+        self.assertTrue((CONFIGS / "azure_sql_extract_hourly.json").exists())
+        self.assertTrue((CONFIGS / "azure_sql_extract_daily.json").exists())
+
+
+if __name__ == "__main__":
+    unittest.main()

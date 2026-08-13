@@ -1,0 +1,14 @@
+bundle:
+  name: TDPTSXX-AzureSql-ETL
+
+include:
+  - configs/vars_base.yml
+  - resources/jobs/azure_sql_etl_jobs.yml
+  - targets/dev.yml
+  - targets/tst.yml
+  - targets/stg.yml
+  - targets/prd.yml
+
+sync:
+  paths:
+    - src

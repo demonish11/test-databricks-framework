@@ -1,0 +1,105 @@
+resources:
+  jobs:
+    S0TDPSXX_AzureSql_ETL_Hourly:
+      name: S0TDPSXX Azure SQL ETL Hourly
+      schedule:
+        quartz_cron_expression: ${var.Hourly_Cron_Schedule}
+        timezone_id: ${var.Job_Timezone}
+        pause_status: PAUSED
+      parameters:
+        - name: entity_name
+          default: ""
+        - name: continue_on_error
+          default: "true"
+      job_clusters:
+        - job_cluster_key: AzureSql_ETL_Cluster
+          new_cluster:
+            cluster_name: ""
+            spark_version: 17.3.x-scala2.13
+            azure_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK_AZURE
+              spot_bid_max_price: -1
+            node_type_id: Standard_D4ds_v5
+            spark_env_vars:
+              PYSPARK_PYTHON: /databricks/python3/bin/python3
+              Databricks_Env: ${var.Databricks_Env}
+              Daily_Source_Config_Path: ${var.Daily_Source_Config_Path}
+              Transactional_Source_Config_Path: ${var.Transactional_Source_Config_Path}
+              Target_Config_Path: ${var.Target_Config_Path}
+              Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+              Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+              Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+            enable_elastic_disk: true
+            data_security_mode: USER_ISOLATION
+            num_workers: 4
+      tasks:
+        - task_key: Run_Hourly_Sequential_Entity_Pipeline
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Entity_Sequential_Runner
+            source: WORKSPACE
+            base_parameters:
+              load_mode: transactional
+              source_config_path: ${var.Transactional_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: "{{job.parameters.entity_name}}"
+              continue_on_error: "{{job.parameters.continue_on_error}}"
+          job_cluster_key: AzureSql_ETL_Cluster
+          libraries:
+            - maven:
+                coordinates: com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11
+      queue:
+        enabled: true
+      timeout_seconds: 86400
+
+    S0TDPSXX_AzureSql_ETL_Daily:
+      name: S0TDPSXX Azure SQL ETL Daily
+      schedule:
+        quartz_cron_expression: ${var.Daily_Cron_Schedule}
+        timezone_id: ${var.Job_Timezone}
+        pause_status: PAUSED
+      parameters:
+        - name: entity_name
+          default: ""
+        - name: continue_on_error
+          default: "true"
+      job_clusters:
+        - job_cluster_key: AzureSql_ETL_Cluster
+          new_cluster:
+            cluster_name: ""
+            spark_version: 17.3.x-scala2.13
+            azure_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK_AZURE
+              spot_bid_max_price: -1
+            node_type_id: Standard_D4ds_v5
+            spark_env_vars:
+              PYSPARK_PYTHON: /databricks/python3/bin/python3
+              Databricks_Env: ${var.Databricks_Env}
+              Daily_Source_Config_Path: ${var.Daily_Source_Config_Path}
+              Transactional_Source_Config_Path: ${var.Transactional_Source_Config_Path}
+              Target_Config_Path: ${var.Target_Config_Path}
+              Loadtracker_Target_Catalog: ${var.Loadtracker_Target_Catalog}
+              Loadtracker_Target_Schema: ${var.Loadtracker_Target_Schema}
+              Loadtracker_Target_Table: ${var.Loadtracker_Target_Table}
+            enable_elastic_disk: true
+            data_security_mode: USER_ISOLATION
+            num_workers: 4
+      tasks:
+        - task_key: Run_Daily_Sequential_Entity_Pipeline
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/src/Entity_Sequential_Runner
+            source: WORKSPACE
+            base_parameters:
+              load_mode: daily
+              source_config_path: ${var.Daily_Source_Config_Path}
+              target_config_path: ${var.Target_Config_Path}
+              entity_name: "{{job.parameters.entity_name}}"
+              continue_on_error: "{{job.parameters.continue_on_error}}"
+          job_cluster_key: AzureSql_ETL_Cluster
+          libraries:
+            - maven:
+                coordinates: com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11
+      queue:
+        enabled: true
+      timeout_seconds: 86400

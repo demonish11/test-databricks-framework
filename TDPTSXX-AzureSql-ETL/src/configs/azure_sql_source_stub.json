@@ -1,7 +1,6 @@
 {
   "source_name": "azure_sql_tdps",
-  "jdbc": {
-    "database": "azure_sql",
+  "connection": {
     "server_by_env": {
       "dev": "cutdasqltdps01.database.windows.net",
       "tst": "cuttasqltdps01.database.windows.net",
@@ -15,10 +14,7 @@
       "prd": ""
     },
     "port": 1433,
-    "driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
-    "options": {
-      "fetchsize": "10000"
-    }
+    "driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"
   },
   "authentication": {
     "mode": "service_principal",
