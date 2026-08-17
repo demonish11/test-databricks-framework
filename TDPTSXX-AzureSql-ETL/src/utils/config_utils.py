@@ -2,6 +2,7 @@
 import copy
 import json
 import os
+import re
 
 # COMMAND ----------
 
@@ -296,6 +297,57 @@ def _resolve_requested_entity_names(entity_configs, requested_entity_name, exclu
 
     _visit(requested_entity_name)
     return resolved_entity_names
+
+
+def parse_select_column_names(query):
+    """Derive column names from a simple SELECT ... FROM query (no invented schema)."""
+    if not query:
+        return []
+    match = re.search(r"SELECT\s+(?:TOP\s*\(\s*\d+\s*\)\s+)?(.+?)\s+FROM\s+", query, flags=re.IGNORECASE | re.DOTALL)
+    if not match:
+        return []
+    select_list = match.group(1)
+    columns = []
+    for raw_item in select_list.split(","):
+        item = raw_item.strip().strip("[]").strip()
+        if not item or item == "*":
+            continue
+        if " as " in item.lower():
+            item = re.split(r"\s+as\s+", item, flags=re.IGNORECASE)[-1].strip().strip("[]")
+        else:
+            item = item.split(".")[-1].strip().strip("[]")
+        if item:
+            columns.append(item)
+    return columns
+
+
+def validate_entity_schema(entity_config):
+    """Ensure configured schema/PK match the extract SQL column list."""
+    schema = entity_config.get("schema") or {}
+    schema_columns = [str(col).strip() for col in schema.get("columns") or [] if str(col).strip()]
+    primary_keys = [
+        str(col).strip()
+        for col in (entity_config.get("target") or {}).get("primary_key_columns") or []
+        if str(col).strip()
+    ]
+    query_by_env = ((entity_config.get("extract") or {}).get("query_by_env") or {})
+    sample_query = next(iter(query_by_env.values()), "")
+    query_columns = parse_select_column_names(sample_query)
+
+    if schema_columns and query_columns and schema_columns != query_columns:
+        raise ValueError(
+            f"Entity '{entity_config.get('entity_name')}' schema.columns do not match extract SQL columns."
+        )
+    missing_keys = [key for key in primary_keys if schema_columns and key not in schema_columns]
+    if missing_keys:
+        raise ValueError(
+            f"Entity '{entity_config.get('entity_name')}' primary key {missing_keys} not present in schema.columns."
+        )
+    return {
+        "schema_columns": schema_columns,
+        "query_columns": query_columns,
+        "primary_key_columns": primary_keys,
+    }
 
 
 def get_entity_configs(

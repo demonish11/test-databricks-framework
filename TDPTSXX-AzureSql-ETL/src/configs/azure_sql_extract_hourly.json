@@ -1,9 +1,9 @@
 {
-  "default_entity_name": "SiteOverrideStandard",
+  "default_entity_name": "DispatchNonDrivingStandard",
   "time_grain": "HOURLY",
   "entities": {
-    "SiteOverrideStandard": {
-      "entity_name": "SiteOverrideStandard",
+    "DispatchNonDrivingStandard": {
+      "entity_name": "DispatchNonDrivingStandard",
       "jdbc": {
         "database": "azure_sql",
         "connection_source": "target_config",
@@ -12,23 +12,36 @@
           "fetchsize": "10000"
         }
       },
+      "schema": {
+        "source_table": "dbo.DispatchNonDrivingStandard",
+        "columns": [
+          "DispatchAlias",
+          "BeginDayMinutes",
+          "EndDayMinutes",
+          "EffectiveStartDate",
+          "EffectiveEndDate",
+          "CreatedDateTime",
+          "UpdatedDateTime",
+          "UpdatedUserID"
+        ]
+      },
       "extract": {
         "enabled": true,
         "query_by_env": {
-          "dev": "SELECT SiteOverrideStandardID, FacilityAlias, ProductCategory, ReceivingType, PreStop, PostStop, Unload, Reload, EffectiveStartDate, EffectiveEndDate, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.SiteOverrideStandard WHERE 1=1",
-          "tst": "SELECT SiteOverrideStandardID, FacilityAlias, ProductCategory, ReceivingType, PreStop, PostStop, Unload, Reload, EffectiveStartDate, EffectiveEndDate, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.SiteOverrideStandard WHERE 1=1",
-          "stg": "SELECT SiteOverrideStandardID, FacilityAlias, ProductCategory, ReceivingType, PreStop, PostStop, Unload, Reload, EffectiveStartDate, EffectiveEndDate, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.SiteOverrideStandard WHERE 1=1",
-          "prd": "SELECT SiteOverrideStandardID, FacilityAlias, ProductCategory, ReceivingType, PreStop, PostStop, Unload, Reload, EffectiveStartDate, EffectiveEndDate, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.SiteOverrideStandard WHERE 1=1"
+          "dev": "SELECT DispatchAlias, BeginDayMinutes, EndDayMinutes, EffectiveStartDate, EffectiveEndDate, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.DispatchNonDrivingStandard WHERE 1=1",
+          "tst": "SELECT DispatchAlias, BeginDayMinutes, EndDayMinutes, EffectiveStartDate, EffectiveEndDate, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.DispatchNonDrivingStandard WHERE 1=1",
+          "stg": "SELECT DispatchAlias, BeginDayMinutes, EndDayMinutes, EffectiveStartDate, EffectiveEndDate, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.DispatchNonDrivingStandard WHERE 1=1",
+          "prd": "SELECT DispatchAlias, BeginDayMinutes, EndDayMinutes, EffectiveStartDate, EffectiveEndDate, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.DispatchNonDrivingStandard WHERE 1=1"
         },
-        "temp_view_name": "azuresql_extract_siteoverridestandard",
-        "global_temp_view_name": "azuresql_extract_siteoverridestandard",
+        "temp_view_name": "azuresql_extract_dispatchnondrivingstandard",
+        "global_temp_view_name": "azuresql_extract_dispatchnondrivingstandard",
         "validation_row_limit": 0,
         "skip_row_count": false
       },
       "transform": {
         "enabled": true,
-        "temp_view_name": "azuresql_transform_siteoverridestandard",
-        "global_temp_view_name": "azuresql_transform_siteoverridestandard",
+        "temp_view_name": "azuresql_transform_dispatchnondrivingstandard",
+        "global_temp_view_name": "azuresql_transform_dispatchnondrivingstandard",
         "validation_row_limit": 0,
         "skip_row_count": false
       },
@@ -39,92 +52,17 @@
         "enabled": true,
         "watermark_column": "UpdatedDateTime",
         "uc_watermark_column": "UpdatedDateTime",
-        "loadtracker_entity_name": "SiteOverrideStandard"
+        "loadtracker_entity_name": "DispatchNonDrivingStandard"
       },
       "target": {
         "write_enabled": true,
-        "primary_key_columns": ["SiteOverrideStandardID"],
-        "dedupe_key_columns": ["SiteOverrideStandardID"],
+        "primary_key_columns": ["DispatchAlias"],
+        "dedupe_key_columns": ["DispatchAlias"],
         "dedupe_order_columns": ["UpdatedDateTime", "CreatedDateTime"],
         "raw_merge_on_primary_key": true,
-        "target_entity": "TDS_SiteOverrideStandard",
-        "target_uc_schema": "transportation_facility_raw",
-        "target_file_path": "/Publix/Transportation/Facility/Raw/",
-        "target_file_format": "Delta",
-        "target_datalake_by_env": {
-          "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
-          "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
-          "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
-          "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
-        },
-        "secondary_datalake_by_env": {
-          "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
-          "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
-          "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
-          "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
-        },
-        "target_unity_catalog_by_env": {
-          "dev": "ent_dtlk_dev",
-          "tst": "ent_dtlk_tst",
-          "stg": "ent_dtlk_stg",
-          "prd": "ent_dtlk_prd"
-        },
-        "secondary_unity_catalog_by_env": {
-          "dev": "entc_dtlk_dev",
-          "tst": "entc_dtlk_tst",
-          "stg": "entc_dtlk_stg",
-          "prd": "entc_dtlk_prd"
-        }
-      }
-    },
-    "ADGroup": {
-      "entity_name": "ADGroup",
-      "jdbc": {
-        "database": "azure_sql",
-        "connection_source": "target_config",
-        "driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver",
-        "options": {
-          "fetchsize": "10000"
-        }
-      },
-      "extract": {
-        "enabled": true,
-        "query_by_env": {
-          "dev": "SELECT ADGroupID, ADGroupName, IsActive, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.ADGroup WHERE 1=1",
-          "tst": "SELECT ADGroupID, ADGroupName, IsActive, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.ADGroup WHERE 1=1",
-          "stg": "SELECT ADGroupID, ADGroupName, IsActive, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.ADGroup WHERE 1=1",
-          "prd": "SELECT ADGroupID, ADGroupName, IsActive, CreatedDateTime, UpdatedDateTime, UpdatedUserID FROM dbo.ADGroup WHERE 1=1"
-        },
-        "temp_view_name": "azuresql_extract_adgroup",
-        "global_temp_view_name": "azuresql_extract_adgroup",
-        "validation_row_limit": 0,
-        "skip_row_count": false
-      },
-      "transform": {
-        "enabled": true,
-        "temp_view_name": "azuresql_transform_adgroup",
-        "global_temp_view_name": "azuresql_transform_adgroup",
-        "validation_row_limit": 0,
-        "skip_row_count": false
-      },
-      "completion": {
-        "enabled": true
-      },
-      "incremental": {
-        "enabled": true,
-        "watermark_column": "UpdatedDateTime",
-        "uc_watermark_column": "UpdatedDateTime",
-        "loadtracker_entity_name": "ADGroup"
-      },
-      "target": {
-        "write_enabled": true,
-        "primary_key_columns": ["ADGroupID"],
-        "dedupe_key_columns": ["ADGroupID"],
-        "dedupe_order_columns": ["UpdatedDateTime", "CreatedDateTime"],
-        "raw_merge_on_primary_key": true,
-        "target_entity": "TDS_ADGroup",
-        "target_uc_schema": "transportation_reference_raw",
-        "target_file_path": "/Publix/Transportation/Reference/Raw/",
+        "target_entity": "TDS_DispatchNonDrivingStandard",
+        "target_uc_schema": "transportation_dispatchsite_raw",
+        "target_file_path": "/Publix/Transportation/DispatchSite/Raw/",
         "target_file_format": "Delta",
         "target_datalake_by_env": {
           "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",

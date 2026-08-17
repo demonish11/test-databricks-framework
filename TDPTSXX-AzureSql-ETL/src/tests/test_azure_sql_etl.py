@@ -47,14 +47,18 @@ class ConfigLoadingTests(unittest.TestCase):
 
         self.assertEqual(hourly["time_grain"], "HOURLY")
         self.assertEqual(daily["time_grain"], "DAILY")
-        self.assertIn("SiteOverrideStandard", hourly["entities"])
-        self.assertIn("ADGroup", hourly["entities"])
-        self.assertIn("SiteOverrideStandard", daily["entities"])
-        self.assertIn("ADGroup", daily["entities"])
+        self.assertEqual(set(hourly["entities"]), {"DispatchNonDrivingStandard"})
+        self.assertEqual(set(daily["entities"]), {"DispatchActivityStandard"})
         self.assertEqual(stub["authentication"]["mode"], "service_principal")
         self.assertEqual(stub["authentication"]["secret_key"], "database-sp-sec")
         self.assertIn("connection", stub)
         self.assertNotIn("client_secret", json.dumps(stub))
+
+    def test_entities_are_not_duplicated_across_frequencies(self):
+        hourly = json.loads((CONFIGS / "azure_sql_extract_hourly.json").read_text())
+        daily = json.loads((CONFIGS / "azure_sql_extract_daily.json").read_text())
+        overlap = set(hourly["entities"]) & set(daily["entities"])
+        self.assertEqual(overlap, set(), msg=f"Entities appear in both hourly and daily: {overlap}")
 
     def test_azure_sql_source_recognized(self):
         hourly = json.loads((CONFIGS / "azure_sql_extract_hourly.json").read_text())
@@ -69,26 +73,42 @@ class ConfigLoadingTests(unittest.TestCase):
             self.assertEqual(entity["incremental"]["watermark_column"], "UpdatedDateTime")
             self.assertTrue(entity["target"]["raw_merge_on_primary_key"])
             self.assertEqual(entity["target"]["dedupe_order_columns"], ["UpdatedDateTime", "CreatedDateTime"])
+            self.assertEqual(entity["target"]["primary_key_columns"], ["DispatchAlias"])
 
     def test_daily_full_load_flags(self):
         daily = json.loads((CONFIGS / "azure_sql_extract_daily.json").read_text())
         for entity in daily["entities"].values():
             self.assertFalse(entity["incremental"]["enabled"])
             self.assertFalse(entity["target"]["raw_merge_on_primary_key"])
+            self.assertEqual(entity["target"]["primary_key_columns"], ["DispatchAlias"])
+
+    def test_schema_derived_from_source_queries(self):
+        hourly = json.loads((CONFIGS / "azure_sql_extract_hourly.json").read_text())
+        daily = json.loads((CONFIGS / "azure_sql_extract_daily.json").read_text())
+        config_utils = _load_module("azure_sql_etl_config_utils_schema", UTILS / "config_utils.py")
+        for entity in list(hourly["entities"].values()) + list(daily["entities"].values()):
+            validated = config_utils.validate_entity_schema(entity)
+            self.assertTrue(validated["schema_columns"])
+            self.assertEqual(validated["schema_columns"], validated["query_columns"])
+            self.assertIn("DispatchAlias", validated["schema_columns"])
+            self.assertEqual(validated["primary_key_columns"], ["DispatchAlias"])
+            query = next(iter(entity["extract"]["query_by_env"].values())).upper()
+            self.assertNotRegex(query, r"\bTOP\s*\(")
 
     def test_unity_catalog_conventions_preserved(self):
         hourly = json.loads((CONFIGS / "azure_sql_extract_hourly.json").read_text())
-        site = hourly["entities"]["SiteOverrideStandard"]["target"]
-        adgroup = hourly["entities"]["ADGroup"]["target"]
+        daily = json.loads((CONFIGS / "azure_sql_extract_daily.json").read_text())
+        nondriving = hourly["entities"]["DispatchNonDrivingStandard"]["target"]
+        activity = daily["entities"]["DispatchActivityStandard"]["target"]
 
-        self.assertEqual(site["target_entity"], "TDS_SiteOverrideStandard")
-        self.assertEqual(site["target_uc_schema"], "transportation_facility_raw")
-        self.assertEqual(site["target_unity_catalog_by_env"]["dev"], "ent_dtlk_dev")
-        self.assertEqual(site["secondary_unity_catalog_by_env"]["dev"], "entc_dtlk_dev")
-        self.assertEqual(adgroup["target_entity"], "TDS_ADGroup")
-        self.assertEqual(adgroup["target_uc_schema"], "transportation_reference_raw")
-        self.assertTrue(site["target_file_path"].endswith("/Raw/"))
-        self.assertEqual(site["target_file_format"], "Delta")
+        self.assertEqual(nondriving["target_entity"], "TDS_DispatchNonDrivingStandard")
+        self.assertEqual(activity["target_entity"], "TDS_DispatchActivityStandard")
+        self.assertEqual(nondriving["target_uc_schema"], "transportation_dispatchsite_raw")
+        self.assertEqual(activity["target_uc_schema"], "transportation_dispatchsite_raw")
+        self.assertEqual(nondriving["target_unity_catalog_by_env"]["dev"], "ent_dtlk_dev")
+        self.assertEqual(nondriving["secondary_unity_catalog_by_env"]["dev"], "entc_dtlk_dev")
+        self.assertTrue(nondriving["target_file_path"].endswith("/DispatchSite/Raw/"))
+        self.assertEqual(nondriving["target_file_format"], "Delta")
 
 
 class HelperLogicTests(unittest.TestCase):
@@ -102,7 +122,7 @@ class HelperLogicTests(unittest.TestCase):
         hourly = json.loads((CONFIGS / "azure_sql_extract_hourly.json").read_text())
         entities = self.config_utils.get_entity_configs(hourly, exclude_dependency_only=True)
         names = [name for name, _ in entities]
-        self.assertEqual(names, ["SiteOverrideStandard", "ADGroup"])
+        self.assertEqual(names, ["DispatchNonDrivingStandard"])
 
     def test_incremental_query_uses_datetime2(self):
         query = self.config_utils.build_incremental_extract_query(
@@ -151,31 +171,31 @@ class HelperLogicTests(unittest.TestCase):
     def test_delta_paths_for_dev(self):
         hourly = json.loads((CONFIGS / "azure_sql_extract_hourly.json").read_text())
         paths = self.delta_utils.resolve_delta_target_paths(
-            hourly["entities"]["SiteOverrideStandard"],
+            hourly["entities"]["DispatchNonDrivingStandard"],
             "dev",
         )
         self.assertEqual(
             paths["primary_raw_table"],
-            "ent_dtlk_dev.transportation_facility_raw.TDS_SiteOverrideStandard",
+            "ent_dtlk_dev.transportation_dispatchsite_raw.TDS_DispatchNonDrivingStandard",
         )
         self.assertEqual(
             paths["primary_transform_table"],
-            "ent_dtlk_dev.transportation_facility_transform.TDS_SiteOverrideStandard",
+            "ent_dtlk_dev.transportation_dispatchsite_transform.TDS_DispatchNonDrivingStandard",
         )
         self.assertEqual(
             paths["secondary_raw_table"],
-            "entc_dtlk_dev.transportation_facility_raw.TDS_SiteOverrideStandard",
+            "entc_dtlk_dev.transportation_dispatchsite_raw.TDS_DispatchNonDrivingStandard",
         )
-        self.assertIn("/Facility/Raw/TDS_SiteOverrideStandard/Delta", paths["primary_raw_path"])
-        self.assertIn("/Facility/Transform/TDS_SiteOverrideStandard/Delta", paths["primary_transform_path"])
+        self.assertIn("/DispatchSite/Raw/TDS_DispatchNonDrivingStandard/Delta", paths["primary_raw_path"])
+        self.assertIn("/DispatchSite/Transform/TDS_DispatchNonDrivingStandard/Delta", paths["primary_transform_path"])
         self.assertTrue(paths["raw_merge_on_primary_key"])
-        self.assertEqual(paths["primary_key_columns"], ["SiteOverrideStandardID"])
+        self.assertEqual(paths["primary_key_columns"], ["DispatchAlias"])
 
     def test_merge_condition(self):
-        condition = self.delta_utils.build_merge_condition(["SiteOverrideStandardID"])
+        condition = self.delta_utils.build_merge_condition(["DispatchAlias"])
         self.assertEqual(
             condition,
-            "target.`SiteOverrideStandardID` = source.`SiteOverrideStandardID`",
+            "target.`DispatchAlias` = source.`DispatchAlias`",
         )
 
 
