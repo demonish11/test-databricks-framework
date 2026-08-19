@@ -230,7 +230,7 @@ class IndependenceTests(unittest.TestCase):
     def test_project_layout_matches_dataload_style(self):
         self.assertTrue((PROJECT_ROOT / "databricks.yml").exists())
         self.assertTrue((PROJECT_ROOT / "configs" / "vars_base.yml").exists())
-        self.assertTrue((PROJECT_ROOT / "resources" / "jobs" / "azure_sql_etl_jobs.yml").exists())
+        self.assertTrue((PROJECT_ROOT / "resources" / "jobs" / "azuresql_etl_jobs.yml").exists())
         self.assertTrue((PROJECT_ROOT / "targets" / "dev.yml").exists())
         self.assertTrue((PROJECT_ROOT / "azure-pipelines" / "azure-pipelines.yml").exists())
         self.assertTrue((ROOT / "Entity_Sequential_Runner.py").exists())

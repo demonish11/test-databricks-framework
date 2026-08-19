@@ -3,7 +3,7 @@ bundle:
 
 include:
   - configs/vars_base.yml
-  - resources/jobs/azure_sql_etl_jobs.yml
+  - resources/jobs/azuresql_etl_jobs.yml
   - targets/dev.yml
   - targets/tst.yml
   - targets/stg.yml
@@ -12,3 +12,5 @@ include:
 sync:
   paths:
     - src
+  exclude:
+    - src/tests/**
