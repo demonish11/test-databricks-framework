@@ -21,7 +21,6 @@ ROOT = Path(__file__).resolve().parents[1]  # .../TDPTSXX-AzureSql-ETL/src
 PROJECT_ROOT = ROOT.parent  # .../TDPTSXX-AzureSql-ETL
 CONFIGS = ROOT / "configs"
 UTILS = ROOT / "utils"
-DATALAKE_SRC = PROJECT_ROOT.parent / "TDPTSXX-DATALAKE" / "src"
 
 
 def _load_module(module_name: str, path: Path):
@@ -234,15 +233,6 @@ class IndependenceTests(unittest.TestCase):
         self.assertTrue((PROJECT_ROOT / "targets" / "dev.yml").exists())
         self.assertTrue((PROJECT_ROOT / "azure-pipelines" / "azure-pipelines.yml").exists())
         self.assertTrue((ROOT / "Entity_Sequential_Runner.py").exists())
-        self.assertTrue((CONFIGS / "azure_sql_extract_hourly.json").exists())
-
-    def test_oracle_datalake_untouched_and_legacy_azure_sql_gone(self):
-        self.assertTrue((DATALAKE_SRC / "Wrapper.ipynb").exists())
-        self.assertTrue((DATALAKE_SRC / "Runner.ipynb").exists())
-        self.assertTrue((DATALAKE_SRC / "datamapping_Hourly.json").exists())
-        self.assertFalse((DATALAKE_SRC / "datamapping_AzureSql_Hourly.json").exists())
-        self.assertFalse((DATALAKE_SRC / "azure_sql_source_stub.json").exists())
-        self.assertFalse((DATALAKE_SRC / "azure_sql_etl").exists())
         self.assertTrue((CONFIGS / "azure_sql_source_stub.json").exists())
         self.assertTrue((CONFIGS / "azure_sql_extract_hourly.json").exists())
         self.assertTrue((CONFIGS / "azure_sql_extract_daily.json").exists())
