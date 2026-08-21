@@ -3,6 +3,10 @@ variables:
     default: dev
     description: Deployment environment code (dev/tst/stg/prd).
 
+  AzureSql_Jdbc_Jar_Path:
+    default: /Volumes/ent_dtlk_dev/volumes/jdbc-jars/mssql-jdbc-13.2.1.jre11.jar
+    description: Azure SQL / SQL Server JDBC jar path for the current workspace.
+
   Loadtracker_Target_Catalog:
     default: ent_dtlk_dev
     description: Unity Catalog catalog for load tracking.

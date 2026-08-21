@@ -8,6 +8,7 @@ targets:
       service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
     variables:
       Databricks_Env: dev
+      AzureSql_Jdbc_Jar_Path: /Volumes/ent_dtlk_dev/volumes/jdbc-jars/mssql-jdbc-13.2.1.jre11.jar
       Loadtracker_Target_Catalog: ent_dtlk_dev
       Loadtracker_Target_Schema: monitoring
       Loadtracker_Target_Table: load_tracking_s0transportxxx
@@ -37,6 +38,7 @@ targets:
       service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
     variables:
       Databricks_Env: dev
+      AzureSql_Jdbc_Jar_Path: /Volumes/entc_dtlk_dev/volumes/jdbc-jars/mssql-jdbc-13.2.1.jre11.jar
       Loadtracker_Target_Catalog: entc_dtlk_dev
       Loadtracker_Target_Schema: monitoring
       Loadtracker_Target_Table: load_tracking_s0transportxxx

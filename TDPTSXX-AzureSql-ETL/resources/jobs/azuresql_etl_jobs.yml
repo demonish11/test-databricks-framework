@@ -46,8 +46,7 @@ resources:
               continue_on_error: "{{job.parameters.continue_on_error}}"
           job_cluster_key: AzureSql_ETL_Cluster
           libraries:
-            - maven:
-                coordinates: com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11
+            - jar: ${var.AzureSql_Jdbc_Jar_Path}
       queue:
         enabled: true
       timeout_seconds: 86400
@@ -98,8 +97,7 @@ resources:
               continue_on_error: "{{job.parameters.continue_on_error}}"
           job_cluster_key: AzureSql_ETL_Cluster
           libraries:
-            - maven:
-                coordinates: com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11
+            - jar: ${var.AzureSql_Jdbc_Jar_Path}
       queue:
         enabled: true
       timeout_seconds: 86400
