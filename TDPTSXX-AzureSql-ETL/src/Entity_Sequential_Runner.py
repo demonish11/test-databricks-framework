@@ -11,7 +11,7 @@ dbutils.widgets.text("continue_on_error", "true")
 
 # COMMAND ----------
 
-# MAGIC %run ./utils/config_utils
+# MAGIC %run ./utils/config_utils.py
 
 # COMMAND ----------
 

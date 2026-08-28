@@ -10,15 +10,11 @@ dbutils.widgets.text("continue_on_error", "false")
 
 # COMMAND ----------
 
-# MAGIC %run ./utils/config_utils
+# MAGIC %run ./utils/config_utils.py
 
 # COMMAND ----------
 
-# MAGIC %run ./utils/jdbc_utils
-
-# COMMAND ----------
-
-# MAGIC %run ./utils/delta_utils
+# MAGIC %run ./utils/jdbc_utils.py
 
 # COMMAND ----------
 
