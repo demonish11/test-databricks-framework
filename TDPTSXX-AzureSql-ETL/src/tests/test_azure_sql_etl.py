@@ -100,8 +100,8 @@ class ConfigLoadingTests(unittest.TestCase):
         nondriving = hourly["entities"]["DispatchNonDrivingStandard"]["target"]
         activity = daily["entities"]["DispatchActivityStandard"]["target"]
 
-        self.assertEqual(nondriving["target_entity"], "TDS_DispatchNonDrivingStandard")
-        self.assertEqual(activity["target_entity"], "TDS_DispatchActivityStandard")
+        self.assertEqual(nondriving["target_entity"], "TDPS_DispatchNonDrivingStandard")
+        self.assertEqual(activity["target_entity"], "TDPS_DispatchActivityStandard")
         self.assertEqual(nondriving["target_uc_schema"], "transportation_dispatchsite_raw")
         self.assertEqual(activity["target_uc_schema"], "transportation_dispatchsite_raw")
         self.assertEqual(nondriving["target_unity_catalog_by_env"]["dev"], "ent_dtlk_dev")
@@ -175,18 +175,18 @@ class HelperLogicTests(unittest.TestCase):
         )
         self.assertEqual(
             paths["primary_raw_table"],
-            "ent_dtlk_dev.transportation_dispatchsite_raw.TDS_DispatchNonDrivingStandard",
+            "ent_dtlk_dev.transportation_dispatchsite_raw.TDPS_DispatchNonDrivingStandard",
         )
         self.assertEqual(
             paths["primary_transform_table"],
-            "ent_dtlk_dev.transportation_dispatchsite_transform.TDS_DispatchNonDrivingStandard",
+            "ent_dtlk_dev.transportation_dispatchsite_transform.TDPS_DispatchNonDrivingStandard",
         )
         self.assertEqual(
             paths["secondary_raw_table"],
-            "entc_dtlk_dev.transportation_dispatchsite_raw.TDS_DispatchNonDrivingStandard",
+            "entc_dtlk_dev.transportation_dispatchsite_raw.TDPS_DispatchNonDrivingStandard",
         )
-        self.assertIn("/DispatchSite/Raw/TDS_DispatchNonDrivingStandard/Delta", paths["primary_raw_path"])
-        self.assertIn("/DispatchSite/Transform/TDS_DispatchNonDrivingStandard/Delta", paths["primary_transform_path"])
+        self.assertIn("/DispatchSite/Raw/TDPS_DispatchNonDrivingStandard/Delta", paths["primary_raw_path"])
+        self.assertIn("/DispatchSite/Transform/TDPS_DispatchNonDrivingStandard/Delta", paths["primary_transform_path"])
         self.assertTrue(paths["raw_merge_on_primary_key"])
         self.assertEqual(paths["primary_key_columns"], ["DispatchAlias"])
 

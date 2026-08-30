@@ -60,7 +60,7 @@
         "dedupe_key_columns": ["DispatchAlias"],
         "dedupe_order_columns": ["UpdatedDateTime", "CreatedDateTime"],
         "raw_merge_on_primary_key": true,
-        "target_entity": "TDS_DispatchNonDrivingStandard",
+        "target_entity": "TDPS_DispatchNonDrivingStandard",
         "target_uc_schema": "transportation_dispatchsite_raw",
         "target_file_path": "/Publix/Transportation/DispatchSite/Raw/",
         "target_file_format": "Delta",
