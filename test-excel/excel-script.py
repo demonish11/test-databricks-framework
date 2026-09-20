@@ -1,32 +1,37 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # MATM tables metadata enrichment
-# MAGIC Reads table list from `Matm_tables_format.csv`, pulls schema metadata from MySQL,
-# MAGIC generates **Table Description** via the Databricks model, and stores results in a DataFrame.
+# MAGIC Reads the table list from `Matm_tables_format.xlsx`, pulls schema metadata and sample rows
+# MAGIC from MySQL, and fills the workbook using:
+# MAGIC - **Reference sheets** for controlled vocab columns (`Business Area`, `Functional Category`)
+# MAGIC - **Model inference** for descriptive / analytical columns
+# MAGIC - **Direct MySQL metadata** for factual schema fields
 # MAGIC
 # MAGIC **Requirements**
 # MAGIC - Network access from Databricks compute to `10.219.252.18:3306`
 # MAGIC - Secret scope `mysql-replica` with keys `username` and `password`
-# MAGIC - Place `Matm_tables_format.csv` in the same workspace folder as this notebook,
-# MAGIC   or set the **CSV path** widget (DBFS or Unity Catalog Volume path)
+# MAGIC - Place `Matm_tables_format.xlsx` in the same workspace folder as this notebook,
+# MAGIC   or set the **Excel path** widget (DBFS or Unity Catalog Volume path)
 # MAGIC
 # MAGIC **Path examples**
 # MAGIC - Workspace folder (default): leave widget blank
-# MAGIC - DBFS: `/dbfs/FileStore/shared_uploads/your_folder/Matm_tables_format.csv`
-# MAGIC - Volume: `/Volumes/catalog/schema/volume/Matm_tables_format.csv`
+# MAGIC - DBFS: `/dbfs/FileStore/shared_uploads/your_folder/Matm_tables_format.xlsx`
+# MAGIC - Volume: `/Volumes/catalog/schema/volume/Matm_tables_format.xlsx`
 
 # COMMAND ----------
 
-# MAGIC %pip install pymysql openai -q
+# MAGIC %pip install pymysql openai openpyxl -q
 
 # COMMAND ----------
 
-dbutils.widgets.text("template_csv_path", "", "CSV path (optional)")
+dbutils.widgets.text("template_excel_path", "", "Excel path (optional)")
+dbutils.widgets.text("output_excel_path", "", "Output Excel path (optional)")
 dbutils.widgets.text("table_limit", "", "Table limit for testing (optional)")
 
 from collections import defaultdict
 from datetime import datetime
 import json
+import math
 import re
 from pathlib import PurePosixPath
 
@@ -36,13 +41,20 @@ SECRET_SCOPE = "mysql-replica"
 MYSQL_USER = dbutils.secrets.get(scope=SECRET_SCOPE, key="username")
 MYSQL_PWD = dbutils.secrets.get(scope=SECRET_SCOPE, key="password")
 
-TEMPLATE_CSV = "Matm_tables_format.csv"
+TEMPLATE_EXCEL = "Matm_tables_format.xlsx"
+MAIN_SHEET = "Matm_tables_format"
 AI_MODEL = "databricks-meta-llama-3-3-70b-instruct"
+SAMPLE_ROW_LIMIT = 10
 
-TEMPLATE_CSV_PATH = dbutils.widgets.get("template_csv_path").strip() or None
+TEMPLATE_EXCEL_PATH = dbutils.widgets.get("template_excel_path").strip() or None
+OUTPUT_EXCEL_PATH = dbutils.widgets.get("output_excel_path").strip() or None
 _table_limit_raw = dbutils.widgets.get("table_limit").strip()
 TABLE_LIMIT = int(_table_limit_raw) if _table_limit_raw else None
 
+PLACEHOLDER_PATTERN = re.compile(
+    r"^(refer\s+sheets?|from\s+gpt|from\s+model|from\s+mysql)$",
+    re.IGNORECASE,
+)
 DATE_TYPE_PATTERN = re.compile(r"(date|time|timestamp|year)", re.IGNORECASE)
 SENSITIVE_COLUMN_PATTERN = re.compile(
     r"(email|e_mail|phone|mobile|ssn|social.?sec|password|passwd|pwd|"
@@ -52,6 +64,33 @@ SENSITIVE_COLUMN_PATTERN = re.compile(
     re.IGNORECASE,
 )
 IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
+
+# Columns filled by picking exactly one value from a reference sheet.
+REFERENCE_SHEET_COLUMNS = {
+    "Business Area": {
+        "sheet": "Buisness Areas",
+        "value_column": "Business Areas",
+        "stop_values": {"Data Category"},
+    },
+    "Functional Category": {
+        "sheet": "Functional Categories",
+        "value_column": "Functional Categories",
+    },
+}
+
+# Columns filled by the model from schema metadata and sample rows.
+MODEL_COLUMNS = [
+    "Table Description",
+    "Grain ",
+    "Primary Key",
+    "Composite PK?",
+    "Parent Table (comma delimit)",
+    "Child Tables (comma delimit)",
+    "Date Columns (comma delimit)",
+    "Column Names/Datatypes (comma delimit)",
+    "Sensitive Data Flag",
+    "Notes/Observations",
+]
 
 
 def get_connection(database=None):
@@ -115,29 +154,54 @@ def detect_sensitive_flag(columns):
     return "No"
 
 
-def format_sample_row(row, columns):
-    if not row:
+def normalize_cell_value(value):
+    if value is None or (isinstance(value, float) and math.isnan(value)):
         return None
-    payload = {}
-    for index, (name, *_rest) in enumerate(columns):
-        value = row[index]
-        if isinstance(value, datetime):
-            value = value.isoformat(sep=" ", timespec="seconds")
-        elif value is not None and not isinstance(value, (str, int, float, bool)):
-            value = str(value)
-        payload[name] = value
+    text = str(value).strip()
+    return text or None
+
+
+def is_placeholder(value):
+    text = normalize_cell_value(value)
+    return bool(text and PLACEHOLDER_PATTERN.match(text))
+
+
+def should_fill(value):
+    text = normalize_cell_value(value)
+    return text is None or is_placeholder(text)
+
+
+def serialize_cell_value(value):
+    if isinstance(value, datetime):
+        return value.isoformat(sep=" ", timespec="seconds")
+    if value is not None and not isinstance(value, (str, int, float, bool)):
+        return str(value)
+    return value
+
+
+def format_sample_rows(rows, columns):
+    if not rows:
+        return None
+    payload = []
+    for row in rows:
+        record = {}
+        for index, (name, *_rest) in enumerate(columns):
+            record[name] = serialize_cell_value(row[index])
+        payload.append(record)
     return json.dumps(payload, ensure_ascii=False, default=str)
 
 
-def fetch_sample_row(database, table, columns):
+def fetch_sample_rows(database, table, columns, limit=SAMPLE_ROW_LIMIT):
     if not IDENTIFIER_PATTERN.fullmatch(database) or not IDENTIFIER_PATTERN.fullmatch(table):
-        return None
+        return []
 
     with get_connection(database) as connection:
         with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM `{database}`.`{table}` LIMIT 1")
-            row = cursor.fetchone()
-    return format_sample_row(row, columns)
+            cursor.execute(
+                f"SELECT * FROM `{database}`.`{table}` LIMIT {int(limit)}"
+            )
+            rows = cursor.fetchall()
+    return rows
 
 
 def fetch_database_metadata(database, table_names):
@@ -204,6 +268,7 @@ def fetch_database_metadata(database, table_names):
     for table_name in table_names:
         columns = columns_by_table.get(table_name, [])
         pk_columns = detect_primary_key(columns)
+        sample_rows = fetch_sample_rows(database, table_name, columns)
         metadata_by_table[table_name] = {
             "row_count": table_info.get(table_name, {}).get("row_count"),
             "table_comment": table_info.get(table_name, {}).get("table_comment", ""),
@@ -215,10 +280,49 @@ def fetch_database_metadata(database, table_names):
             "date_columns": format_date_columns(columns) or None,
             "column_names_datatypes": format_column_list(columns) or None,
             "sensitive_data_flag": detect_sensitive_flag(columns),
-            "sample_row": fetch_sample_row(database, table_name, columns),
+            "sample_rows": sample_rows,
+            "sample_row": format_sample_rows(sample_rows, columns),
         }
 
     return metadata_by_table
+
+
+def load_reference_values(excel_path):
+    workbook = pd.ExcelFile(excel_path)
+    reference_values = {}
+
+    for column_name, config in REFERENCE_SHEET_COLUMNS.items():
+        sheet_name = config["sheet"]
+        value_column = config["value_column"]
+        stop_values = set(config.get("stop_values", set()))
+
+        ref_df = pd.read_excel(excel_path, sheet_name=sheet_name, dtype=str)
+        ref_df.columns = [str(col).strip() for col in ref_df.columns]
+
+        if value_column not in ref_df.columns:
+            first_col = ref_df.columns[0]
+            values = ref_df[first_col]
+        else:
+            values = ref_df[value_column]
+
+        allowed = []
+        for raw_value in values:
+            value = normalize_cell_value(raw_value)
+            if value is None:
+                continue
+            if value in stop_values:
+                break
+            if value.lower() in {value_column.lower(), "description", "examples:"}:
+                continue
+            allowed.append(value)
+
+        reference_values[column_name] = sorted(set(allowed))
+        print(
+            f"Loaded {len(reference_values[column_name]):,} allowed values for "
+            f"'{column_name}' from sheet '{sheet_name}'"
+        )
+
+    return reference_values
 
 # COMMAND ----------
 
@@ -244,38 +348,175 @@ ai_client = openai.OpenAI(
 )
 
 
-def generate_table_description(database, table_name, table_metadata):
+def build_metadata_context(database, table_name, table_metadata):
     existing_comment = (table_metadata.get("table_comment") or "").strip()
     column_summary = "\n".join(
-        f"- {name} ({normalize_mysql_type(column_type)}, key={key or 'none'})"
-        for name, column_type, _nullable, key, _comment in table_metadata["columns"][:30]
+        f"- {name} ({normalize_mysql_type(column_type)}, key={key or 'none'}, "
+        f"nullable={nullable}, comment={comment or 'none'})"
+        for name, column_type, nullable, key, comment in table_metadata["columns"][:40]
     )
-    prompt = f"""Describe the MySQL table {database}.{table_name} in 1-2 sentences.
-Use only this schema metadata and do not invent details.
+    sample_rows_json = table_metadata.get("sample_row") or "[]"
+    return f"""Database: {database}
+Table: {table_name}
+Estimated row count: {table_metadata.get('row_count')}
 Existing table comment: {existing_comment or 'none'}
+Schema PK from information_schema: {table_metadata.get('primary_key') or 'none'}
+Composite PK from schema: {table_metadata.get('composite_pk') or 'unknown'}
+Parent tables from FK metadata: {table_metadata.get('parent_tables') or 'none'}
+Child tables from FK metadata: {table_metadata.get('child_tables') or 'none'}
+Date/time columns from schema: {table_metadata.get('date_columns') or 'none'}
+Sensitive-data heuristic from column names: {table_metadata.get('sensitive_data_flag') or 'No'}
 Columns:
-{column_summary}"""
+{column_summary}
+Sample rows ({SAMPLE_ROW_LIMIT} max):
+{sample_rows_json}"""
+
+
+def generate_ai_enrichment(
+    database,
+    table_name,
+    table_metadata,
+    reference_values,
+    columns_to_fill,
+):
+    if not columns_to_fill:
+        return {}
+
+    reference_instructions = []
+    for column_name in sorted(columns_to_fill.intersection(REFERENCE_SHEET_COLUMNS)):
+        allowed = reference_values.get(column_name, [])
+        allowed_text = ", ".join(f'"{value}"' for value in allowed)
+        reference_instructions.append(
+            f'- "{column_name}": choose exactly one value from this list only: {allowed_text}. '
+            "Do not invent a new value."
+        )
+
+    model_instructions = []
+    for column_name in MODEL_COLUMNS:
+        if column_name not in columns_to_fill:
+            continue
+        if column_name == "Table Description":
+            model_instructions.append(
+                '- "Table Description": 1-2 sentence business description of the table.'
+            )
+        elif column_name.strip() == "Grain":
+            model_instructions.append(
+                '- "Grain ": one short phrase describing the row grain / uniqueness level.'
+            )
+        elif column_name == "Primary Key":
+            model_instructions.append(
+                '- "Primary Key": comma-separated PK column(s). Prefer schema PK when present; '
+                "otherwise infer from sample rows and column names."
+            )
+        elif column_name == "Composite PK?":
+            model_instructions.append(
+                '- "Composite PK?": answer exactly "Yes" or "No".'
+            )
+        elif column_name == "Parent Table (comma delimit)":
+            model_instructions.append(
+                '- "Parent Table (comma delimit)": comma-separated parent tables if inferable; '
+                "prefer FK metadata and leave blank if unknown."
+            )
+        elif column_name == "Child Tables (comma delimit)":
+            model_instructions.append(
+                '- "Child Tables (comma delimit)": comma-separated child tables if inferable; '
+                "prefer FK metadata and leave blank if unknown."
+            )
+        elif column_name == "Date Columns (comma delimit)":
+            model_instructions.append(
+                '- "Date Columns (comma delimit)": comma-separated date/time/timestamp columns.'
+            )
+        elif column_name == "Column Names/Datatypes (comma delimit)":
+            model_instructions.append(
+                '- "Column Names/Datatypes (comma delimit)": comma-separated '
+                "column (datatype) pairs."
+            )
+        elif column_name == "Sensitive Data Flag":
+            model_instructions.append(
+                '- "Sensitive Data Flag": answer exactly "Yes" or "No".'
+            )
+        elif column_name == "Notes/Observations":
+            model_instructions.append(
+                '- "Notes/Observations": short factual notes only when supported by the metadata.'
+            )
+
+    response_schema = {
+        column_name: "string or null"
+        for column_name in sorted(columns_to_fill)
+    }
+
+    prompt = f"""Analyze this MySQL table and fill the requested workbook columns.
+
+{build_metadata_context(database, table_name, table_metadata)}
+
+Return a JSON object with exactly these keys:
+{json.dumps(response_schema, indent=2)}
+
+Rules:
+- Use only the metadata and sample rows above.
+- Do not invent facts that are not supported by the metadata.
+- For blank/unknown values, use null.
+{chr(10).join(reference_instructions)}
+{chr(10).join(model_instructions)}"""
 
     try:
         response = ai_client.chat.completions.create(
             model=AI_MODEL,
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=100,
+            max_tokens=700,
+            response_format={"type": "json_object"},
         )
-        return response.choices[0].message.content.strip()
+        payload = json.loads(response.choices[0].message.content)
     except Exception as exc:
-        print(f"AI description failed for {database}.{table_name}: {exc}")
-        return existing_comment or None
+        print(f"AI enrichment failed for {database}.{table_name}: {exc}")
+        return {}
+
+    cleaned = {}
+    for column_name in columns_to_fill:
+        value = payload.get(column_name)
+        if value is None and column_name == "Grain ":
+            value = payload.get("Grain")
+        value = normalize_cell_value(value)
+        if value is None:
+            continue
+
+        if column_name in REFERENCE_SHEET_COLUMNS:
+            allowed = reference_values.get(column_name, [])
+            if value not in allowed:
+                matched = next(
+                    (candidate for candidate in allowed if candidate.lower() == value.lower()),
+                    None,
+                )
+                if matched:
+                    value = matched
+                else:
+                    print(
+                        f"Warning: model returned invalid reference value "
+                        f"'{value}' for {database}.{table_name}.{column_name}; skipping."
+                    )
+                    continue
+
+        if column_name == "Composite PK?" and value not in {"Yes", "No"}:
+            continue
+        if column_name == "Sensitive Data Flag" and value not in {"Yes", "No"}:
+            continue
+
+        cleaned[column_name] = value
+
+    return cleaned
 
 # COMMAND ----------
 
-template_path = TEMPLATE_CSV_PATH or f"{get_notebook_directory()}/{TEMPLATE_CSV}"
-sheet_df = pd.read_csv(template_path, dtype=str)
+template_path = TEMPLATE_EXCEL_PATH or f"{get_notebook_directory()}/{TEMPLATE_EXCEL}"
+reference_values = load_reference_values(template_path)
+
+sheet_df = pd.read_excel(template_path, sheet_name=MAIN_SHEET, dtype=str)
+sheet_df.columns = [str(col) for col in sheet_df.columns]
 
 if TABLE_LIMIT:
     sheet_df = sheet_df.head(TABLE_LIMIT)
 
-print(f"Loaded {len(sheet_df):,} tables from {template_path}")
+print(f"Loaded {len(sheet_df):,} tables from '{MAIN_SHEET}' in {template_path}")
 
 tables_by_database = (
     sheet_df.groupby("Database")["Table"]
@@ -296,7 +537,6 @@ for _, row in sheet_df.iterrows():
     database = row["Database"]
     table_name = row["Table"]
     table_metadata = metadata_cache.get(database, {}).get(table_name)
-
     enriched_row = row.to_dict()
 
     if table_metadata is None:
@@ -304,22 +544,46 @@ for _, row in sheet_df.iterrows():
         enriched_rows.append(enriched_row)
         continue
 
-    enriched_row["Estimated Row Count"] = (
-        None if table_metadata["row_count"] is None else str(table_metadata["row_count"])
+    if should_fill(enriched_row.get("Estimated Row Count")):
+        enriched_row["Estimated Row Count"] = (
+            None
+            if table_metadata["row_count"] is None
+            else str(table_metadata["row_count"])
+        )
+
+    if should_fill(enriched_row.get("Sample Row")):
+        enriched_row["Sample Row"] = table_metadata["sample_row"]
+
+    columns_for_ai = set()
+    for column_name in list(REFERENCE_SHEET_COLUMNS.keys()) + MODEL_COLUMNS:
+        if column_name in enriched_row and should_fill(enriched_row.get(column_name)):
+            columns_for_ai.add(column_name)
+
+    ai_values = generate_ai_enrichment(
+        database,
+        table_name,
+        table_metadata,
+        reference_values,
+        columns_for_ai,
     )
-    enriched_row["Table Description"] = generate_table_description(
-        database, table_name, table_metadata
-    )
-    enriched_row["Primary Key"] = table_metadata["primary_key"] or None
-    enriched_row["Composite PK?"] = table_metadata["composite_pk"]
-    enriched_row["Parent Table (comma delimit)"] = table_metadata["parent_tables"]
-    enriched_row["Child Tables (comma delimit)"] = table_metadata["child_tables"]
-    enriched_row["Date Columns (comma delimit)"] = table_metadata["date_columns"]
-    enriched_row["Column Names/Datatypes (comma delimit)"] = table_metadata[
-        "column_names_datatypes"
-    ]
-    enriched_row["Sample Row"] = table_metadata["sample_row"]
-    enriched_row["Sensitive Data Flag"] = table_metadata["sensitive_data_flag"]
+
+    direct_defaults = {
+        "Primary Key": table_metadata["primary_key"],
+        "Composite PK?": table_metadata["composite_pk"],
+        "Parent Table (comma delimit)": table_metadata["parent_tables"],
+        "Child Tables (comma delimit)": table_metadata["child_tables"],
+        "Date Columns (comma delimit)": table_metadata["date_columns"],
+        "Column Names/Datatypes (comma delimit)": table_metadata["column_names_datatypes"],
+        "Sensitive Data Flag": table_metadata["sensitive_data_flag"],
+    }
+
+    for column_name, default_value in direct_defaults.items():
+        if column_name in columns_for_ai and column_name not in ai_values:
+            if default_value is not None:
+                ai_values[column_name] = default_value
+
+    for column_name, value in ai_values.items():
+        enriched_row[column_name] = value
 
     enriched_rows.append(enriched_row)
 
@@ -331,4 +595,19 @@ matm_tables_df.show(20, truncate=False)
 
 # COMMAND ----------
 
+output_path = OUTPUT_EXCEL_PATH or template_path.replace(".xlsx", "_enriched.xlsx")
+
+with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+    matm_tables_pdf.to_excel(writer, sheet_name=MAIN_SHEET, index=False)
+
+    for sheet_name in pd.ExcelFile(template_path).sheet_names:
+        if sheet_name == MAIN_SHEET:
+            continue
+        pd.read_excel(template_path, sheet_name=sheet_name, dtype=str).to_excel(
+            writer,
+            sheet_name=sheet_name,
+            index=False,
+        )
+
+print(f"Wrote enriched workbook to {output_path}")
 display(matm_tables_df)
