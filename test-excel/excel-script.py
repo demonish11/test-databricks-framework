@@ -108,12 +108,17 @@ def fetch_table_rows(database, table, limit=ROW_LIMIT):
         return pd.read_sql(query, connection)
 
 
+def get_database_output_dir(output_folder, database):
+    return str(PurePosixPath(output_folder) / database)
+
+
+def get_table_csv_path(output_folder, database, table):
+    return str(PurePosixPath(get_database_output_dir(output_folder, database)) / f"{table}.csv")
+
+
 def export_table_csv(database, table, output_folder):
     rows_df = fetch_table_rows(database, table)
-    table_dir = str(PurePosixPath(output_folder) / database)
-    ensure_directory(table_dir)
-
-    csv_path = str(PurePosixPath(table_dir) / f"{table}.csv")
+    csv_path = get_table_csv_path(output_folder, database, table)
     rows_df.to_csv(resolve_local_path(csv_path), index=False)
     return csv_path, len(rows_df)
 
@@ -136,49 +141,72 @@ if TABLE_LIMIT:
 
 ensure_directory(output_folder)
 
+sheet_df["Database"] = sheet_df["Database"].astype(str).str.strip()
+sheet_df["Table"] = sheet_df["Table"].astype(str).str.strip()
+
+database_names = [
+    database
+    for database in sheet_df["Database"].dropna().unique()
+    if database and database.lower() != "nan"
+]
+for database in sorted(database_names):
+    ensure_directory(get_database_output_dir(output_folder, database))
+
 print(f"Loaded {len(sheet_df):,} tables from '{MAIN_SHEET}' in {template_path}")
 print(f"Exporting up to {ROW_LIMIT} rows per table to {output_folder}")
+print(
+    f"Output layout: {output_folder}/<database>/<table>.csv "
+    f"({len(database_names):,} database folders)"
+)
 
 # COMMAND ----------
 
 results = []
 failures = []
+processed_count = 0
 
-for index, row in sheet_df.iterrows():
-    database = str(row["Database"]).strip()
-    table_name = str(row["Table"]).strip()
+for database, database_tables in sheet_df.groupby("Database", sort=True):
+    print(f"\nDatabase: {database} ({len(database_tables):,} tables)")
 
-    if not database or not table_name:
-        failures.append(
-            {
-                "database": database,
-                "table": table_name,
-                "error": "Missing database or table name",
-            }
-        )
-        continue
+    for _, row in database_tables.iterrows():
+        table_name = row["Table"]
 
-    try:
-        csv_path, row_count = export_table_csv(database, table_name, output_folder)
-        results.append(
-            {
-                "database": database,
-                "table": table_name,
-                "csv_path": csv_path,
-                "row_count": row_count,
-                "status": "success",
-            }
-        )
-        print(f"[{len(results):,}/{len(sheet_df):,}] Wrote {row_count:,} rows to {csv_path}")
-    except Exception as exc:
-        failures.append(
-            {
-                "database": database,
-                "table": table_name,
-                "error": str(exc),
-            }
-        )
-        print(f"Failed {database}.{table_name}: {exc}")
+        if not database or not table_name or database.lower() == "nan" or table_name.lower() == "nan":
+            failures.append(
+                {
+                    "database": database,
+                    "table": table_name,
+                    "error": "Missing database or table name",
+                }
+            )
+            continue
+
+        processed_count += 1
+
+        try:
+            csv_path, row_count = export_table_csv(database, table_name, output_folder)
+            results.append(
+                {
+                    "database": database,
+                    "table": table_name,
+                    "csv_path": csv_path,
+                    "row_count": row_count,
+                    "status": "success",
+                }
+            )
+            print(
+                f"  [{processed_count:,}/{len(sheet_df):,}] "
+                f"Wrote {row_count:,} rows to {csv_path}"
+            )
+        except Exception as exc:
+            failures.append(
+                {
+                    "database": database,
+                    "table": table_name,
+                    "error": str(exc),
+                }
+            )
+            print(f"  Failed {database}.{table_name}: {exc}")
 
 # COMMAND ----------
 
