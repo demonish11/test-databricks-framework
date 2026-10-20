@@ -1,0 +1,2 @@
+# Add PRD East/Central target definitions when Prd pipeline stage is enabled.
+targets: {}

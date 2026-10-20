@@ -1,0 +1,16 @@
+bundle:
+  name: TDPTSXX-MATM-MySQL-ETL
+
+include:
+  - configs/vars_base.yml
+  - resources/jobs/mysql_etl_jobs.yml
+  - targets/dev.yml
+  - targets/tst.yml
+  - targets/stg.yml
+  - targets/prd.yml
+
+sync:
+  paths:
+    - src
+  exclude:
+    - src/tests/**

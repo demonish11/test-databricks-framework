@@ -1,0 +1,31 @@
+{
+  "source_name": "matm_mysql_replica",
+  "connection": {
+    "server_by_env": {
+      "dev": "10.219.252.18",
+      "tst": "10.219.252.18",
+      "stg": "10.219.252.18",
+      "prd": "10.219.252.18"
+    },
+    "database_by_env": {
+      "dev": "information_schema",
+      "tst": "information_schema",
+      "stg": "information_schema",
+      "prd": "information_schema"
+    },
+    "port": 3306,
+    "driver": "com.mysql.cj.jdbc.Driver",
+    "url_params": "zeroDateTimeBehavior=convertToNull&autoReconnect=true&characterEncoding=UTF-8&characterSetResults=UTF-8"
+  },
+  "authentication": {
+    "mode": "username_password",
+    "secret_scope_by_env": {
+      "dev": "mysql-replica",
+      "tst": "mysql-replica",
+      "stg": "mysql-replica",
+      "prd": "mysql-replica"
+    },
+    "username_key": "username",
+    "password_key": "password"
+  }
+}
