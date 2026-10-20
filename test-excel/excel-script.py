@@ -11,6 +11,10 @@
 # MAGIC `Number of Tables` comes straight from `information_schema`.
 # MAGIC `Business Area` is restricted to the values in the sheet's own `Business Areas` reference columns.
 # MAGIC
+# MAGIC **Quick preview** — set `preview_database` + `preview_table` to read that MySQL table into a
+# MAGIC Spark DataFrame and `.show()` / `display()` it. Enrichment CSV widgets are not required in
+# MAGIC that mode.
+# MAGIC
 # MAGIC **Requirements**
 # MAGIC - Network access from Databricks compute to `10.219.252.18:3306`
 # MAGIC - Secret scope `mysql-replica` with keys `username` and `password`
@@ -21,6 +25,9 @@
 
 # COMMAND ----------
 
+dbutils.widgets.text("preview_database", "", "MySQL database to preview (optional)")
+dbutils.widgets.text("preview_table", "", "MySQL table to preview (optional)")
+dbutils.widgets.text("preview_row_limit", "100", "Rows to show for preview (default 100)")
 dbutils.widgets.text("input_csv_path", "", "Input CSV path")
 dbutils.widgets.text("output_csv_path", "", "Output CSV path")
 dbutils.widgets.text("table_output_csv_path", "", "Table-level output CSV path (optional)")
@@ -42,6 +49,12 @@ MYSQL_PORT = 3306
 SECRET_SCOPE = "mysql-replica"
 MYSQL_USER = dbutils.secrets.get(scope=SECRET_SCOPE, key="username")
 MYSQL_PWD = dbutils.secrets.get(scope=SECRET_SCOPE, key="password")
+MYSQL_JDBC_URL_TEMPLATE = (
+    "jdbc:mysql://{host}:{port}/{database}"
+    "?zeroDateTimeBehavior=convertToNull&autoReconnect=true"
+    "&characterEncoding=UTF-8&characterSetResults=UTF-8"
+)
+MYSQL_JDBC_DRIVER = "com.mysql.cj.jdbc.Driver"
 
 AI_MODEL = "databricks-meta-llama-3-3-70b-instruct"
 
@@ -61,15 +74,24 @@ def get_int_widget(name, default=None):
     return int(raw_value) if raw_value else default
 
 
+PREVIEW_DATABASE = dbutils.widgets.get("preview_database").strip()
+PREVIEW_TABLE = dbutils.widgets.get("preview_table").strip()
+PREVIEW_ROW_LIMIT = get_int_widget("preview_row_limit", 100)
 INPUT_CSV_PATH = dbutils.widgets.get("input_csv_path").strip()
 OUTPUT_CSV_PATH = dbutils.widgets.get("output_csv_path").strip()
 TABLE_OUTPUT_CSV_PATH = dbutils.widgets.get("table_output_csv_path").strip() or None
 DATABASE_LIMIT = get_int_widget("database_limit")
 MAX_TABLES_PER_DATABASE = get_int_widget("max_tables_per_database")
 SAMPLE_ROW_LIMIT = get_int_widget("sample_row_limit", 10)
+PREVIEW_ONLY = bool(PREVIEW_DATABASE or PREVIEW_TABLE)
 
-if not INPUT_CSV_PATH or not OUTPUT_CSV_PATH:
-    raise ValueError("Set both the 'input_csv_path' and 'output_csv_path' widgets.")
+if PREVIEW_ONLY and not (PREVIEW_DATABASE and PREVIEW_TABLE):
+    raise ValueError("Set both 'preview_database' and 'preview_table' to preview a table.")
+
+if not PREVIEW_ONLY and (not INPUT_CSV_PATH or not OUTPUT_CSV_PATH):
+    raise ValueError(
+        "Set both 'input_csv_path' and 'output_csv_path', or use preview_database + preview_table."
+    )
 
 PLACEHOLDER_PATTERN = re.compile(
     r"^(refer\s+sheets?|from\s+gpt|from\s+model|from\s+mysql)$",
@@ -97,6 +119,69 @@ def get_connection(database=None):
         charset="utf8mb4",
     )
 
+
+def read_mysql_table_df(database, table_name, row_limit=None):
+    """Load a MySQL table into a Spark DataFrame via JDBC."""
+    if not IDENTIFIER_PATTERN.fullmatch(database):
+        raise ValueError(f"Invalid database name '{database}'")
+    if not IDENTIFIER_PATTERN.fullmatch(table_name):
+        raise ValueError(f"Invalid table name '{table_name}'")
+
+    jdbc_url = MYSQL_JDBC_URL_TEMPLATE.format(
+        host=MYSQL_HOST, port=MYSQL_PORT, database=database
+    )
+    dbtable = f"`{database}`.`{table_name}`"
+    if row_limit is not None:
+        dbtable = f"(SELECT * FROM `{database}`.`{table_name}` LIMIT {int(row_limit)}) preview_src"
+
+    return (
+        spark.read.format("jdbc")
+        .option("url", jdbc_url)
+        .option("dbtable", dbtable)
+        .option("user", MYSQL_USER)
+        .option("password", MYSQL_PWD)
+        .option("driver", MYSQL_JDBC_DRIVER)
+        .option("fetchsize", "10000")
+        .load()
+    )
+
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Table preview
+# MAGIC Fill `preview_database` and `preview_table`, then run this cell. Notebook stops here in preview mode.
+
+# COMMAND ----------
+
+if PREVIEW_ONLY:
+    preview_df = read_mysql_table_df(
+        PREVIEW_DATABASE, PREVIEW_TABLE, row_limit=PREVIEW_ROW_LIMIT
+    )
+    print(
+        {
+            "mode": "preview",
+            "database": PREVIEW_DATABASE,
+            "table": PREVIEW_TABLE,
+            "row_limit": PREVIEW_ROW_LIMIT,
+            "columns": preview_df.columns,
+        }
+    )
+    preview_df.show(PREVIEW_ROW_LIMIT, truncate=False)
+    display(preview_df)
+    dbutils.notebook.exit(
+        json.dumps(
+            {
+                "mode": "preview",
+                "database": PREVIEW_DATABASE,
+                "table": PREVIEW_TABLE,
+                "row_limit": PREVIEW_ROW_LIMIT,
+                "status": "success",
+            }
+        )
+    )
+
+# COMMAND ----------
 
 def normalize_cell_value(value):
     if value is None or (isinstance(value, float) and math.isnan(value)):
