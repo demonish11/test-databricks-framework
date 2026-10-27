@@ -235,8 +235,7 @@
       },
       "schema": {
         "source_table": "default_shipment.SHP_IMPORT_REQ_ORDER",
-        "columns": [],
-        "_comment": "TODO: replace SELECT * and populate columns + confirm PK/watermark from information_schema"
+        "columns": []
       },
       "extract": {
         "enabled": true,
@@ -263,20 +262,21 @@
       },
       "incremental": {
         "enabled": false,
-        "watermark_column": "UPDATED_DTTM",
-        "uc_watermark_column": "UPDATED_DTTM",
+        "watermark_column": "UPDATED_TIMESTAMP",
+        "uc_watermark_column": "UPDATED_TIMESTAMP",
         "loadtracker_entity_name": "ShpImportReqOrder"
       },
       "target": {
         "write_enabled": true,
         "primary_key_columns": [
-          "IMPORT_REQ_ORDER_ID"
+          "SHIPMENT_IMP_REQ_ORDER_PK"
         ],
         "dedupe_key_columns": [
-          "IMPORT_REQ_ORDER_ID"
+          "SHIPMENT_IMP_REQ_ORDER_PK"
         ],
         "dedupe_order_columns": [
-          "UPDATED_DTTM"
+          "UPDATED_TIMESTAMP",
+          "CREATED_TIMESTAMP"
         ],
         "raw_merge_on_primary_key": false,
         "target_entity": "TDPS_MatmShpImportReqOrder",
@@ -327,8 +327,7 @@
       },
       "schema": {
         "source_table": "default_shipment.SHP_IMPORT_REQ_ORDER_DTL",
-        "columns": [],
-        "_comment": "TODO: replace SELECT * and populate columns + confirm PK/watermark from information_schema"
+        "columns": []
       },
       "extract": {
         "enabled": true,
@@ -355,20 +354,21 @@
       },
       "incremental": {
         "enabled": false,
-        "watermark_column": "UPDATED_DTTM",
-        "uc_watermark_column": "UPDATED_DTTM",
+        "watermark_column": "UPDATED_TIMESTAMP",
+        "uc_watermark_column": "UPDATED_TIMESTAMP",
         "loadtracker_entity_name": "ShpImportReqOrderDtl"
       },
       "target": {
         "write_enabled": true,
         "primary_key_columns": [
-          "IMPORT_REQ_ORDER_DTL_ID"
+          "PK"
         ],
         "dedupe_key_columns": [
-          "IMPORT_REQ_ORDER_DTL_ID"
+          "PK"
         ],
         "dedupe_order_columns": [
-          "UPDATED_DTTM"
+          "UPDATED_TIMESTAMP",
+          "CREATED_TIMESTAMP"
         ],
         "raw_merge_on_primary_key": false,
         "target_entity": "TDPS_MatmShpImportReqOrderDtl",

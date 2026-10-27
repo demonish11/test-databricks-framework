@@ -127,8 +127,7 @@
       },
       "schema": {
         "source_table": "default_shipment.SHP_SHIPMENT",
-        "columns": [],
-        "_comment": "TODO: replace SELECT * and populate columns + confirm PK/watermark from information_schema"
+        "columns": []
       },
       "extract": {
         "enabled": true,
@@ -155,21 +154,21 @@
       },
       "incremental": {
         "enabled": true,
-        "watermark_column": "UPDATED_DTTM",
-        "uc_watermark_column": "UPDATED_DTTM",
+        "watermark_column": "UPDATED_TIMESTAMP",
+        "uc_watermark_column": "UPDATED_TIMESTAMP",
         "loadtracker_entity_name": "ShpShipment"
       },
       "target": {
         "write_enabled": true,
         "primary_key_columns": [
-          "SHIPMENT_ID"
+          "PK"
         ],
         "dedupe_key_columns": [
-          "SHIPMENT_ID"
+          "PK"
         ],
         "dedupe_order_columns": [
-          "UPDATED_DTTM",
-          "CREATED_DTTM"
+          "UPDATED_TIMESTAMP",
+          "CREATED_TIMESTAMP"
         ],
         "raw_merge_on_primary_key": true,
         "target_entity": "TDPS_MatmShpShipment",
@@ -220,8 +219,7 @@
       },
       "schema": {
         "source_table": "default_shipment.SHP_SHIPMENT_COST",
-        "columns": [],
-        "_comment": "TODO: replace SELECT * and populate columns + confirm PK/watermark from information_schema"
+        "columns": []
       },
       "extract": {
         "enabled": true,
@@ -248,21 +246,21 @@
       },
       "incremental": {
         "enabled": true,
-        "watermark_column": "UPDATED_DTTM",
-        "uc_watermark_column": "UPDATED_DTTM",
+        "watermark_column": "UPDATED_TIMESTAMP",
+        "uc_watermark_column": "UPDATED_TIMESTAMP",
         "loadtracker_entity_name": "ShpShipmentCost"
       },
       "target": {
         "write_enabled": true,
         "primary_key_columns": [
-          "SHIPMENT_COST_ID"
+          "SHIPMENT_PK"
         ],
         "dedupe_key_columns": [
-          "SHIPMENT_COST_ID"
+          "SHIPMENT_PK"
         ],
         "dedupe_order_columns": [
-          "UPDATED_DTTM",
-          "CREATED_DTTM"
+          "UPDATED_TIMESTAMP",
+          "CREATED_TIMESTAMP"
         ],
         "raw_merge_on_primary_key": true,
         "target_entity": "TDPS_MatmShpShipmentCost",
