@@ -193,8 +193,8 @@ TDPTSXX-MATM-MySQL-ETL/
 | File | Responsibility |
 |------|----------------|
 | `mysql_source_stub.json` | Shared connection: host `10.219.252.18`, port `3306`, driver, secret scope keys |
-| `mysql_extract_daily.json` | Daily entities (full load). Ships sample **InformationSchemaTables** + **InformationSchemaColumns** |
-| `mysql_extract_hourly.json` | Transactional sample with `incremental.enabled: true` |
+| `mysql_extract_daily.json` | Daily entities: **ShpImportReqOrder**, **ShpImportReqOrderDtl** (full load) |
+| `mysql_extract_hourly.json` | Hourly entities: **ShpShipment**, **ShpShipmentCost** (`incremental.enabled: true`) |
 
 ---
 
@@ -237,21 +237,21 @@ Each key under `entities` is one ingestible object. Important fields:
 
 ```json
 {
-  "entity_name": "InformationSchemaTables",
+  "entity_name": "ShpShipment",
   "jdbc": {
     "database": "mysql",
     "connection_source": "target_config",
-    "database_by_env": { "dev": "information_schema", "...": "..." },
+    "database_by_env": { "dev": "default_shipment", "...": "..." },
     "driver": "com.mysql.cj.jdbc.Driver",
     "options": { "fetchsize": "10000" }
   },
   "schema": {
-    "source_table": "information_schema.TABLES",
-    "columns": ["TABLE_SCHEMA", "TABLE_NAME", "..."]
+    "source_table": "default_shipment.SHP_SHIPMENT",
+    "columns": []
   },
   "extract": {
     "enabled": true,
-    "query_by_env": { "dev": "SELECT ... FROM ...", "tst": "...", "stg": "...", "prd": "..." },
+    "query_by_env": { "dev": "SELECT * FROM `default_shipment`.`SHP_SHIPMENT`", "tst": "...", "stg": "...", "prd": "..." },
     "temp_view_name": "mysql_extract_...",
     "global_temp_view_name": "mysql_extract_..."
   },
@@ -262,18 +262,18 @@ Each key under `entities` is one ingestible object. Important fields:
   },
   "completion": { "enabled": true },
   "incremental": {
-    "enabled": false,
-    "watermark_column": "UPDATE_TIME",
-    "uc_watermark_column": "UPDATE_TIME",
-    "loadtracker_entity_name": "InformationSchemaTables"
+    "enabled": true,
+    "watermark_column": "UPDATED_TIMESTAMP",
+    "uc_watermark_column": "UPDATED_TIMESTAMP",
+    "loadtracker_entity_name": "ShpShipment"
   },
   "target": {
     "write_enabled": true,
-    "primary_key_columns": ["TABLE_SCHEMA", "TABLE_NAME"],
-    "dedupe_key_columns": ["TABLE_SCHEMA", "TABLE_NAME"],
-    "dedupe_order_columns": ["UPDATE_TIME", "CREATE_TIME"],
-    "raw_merge_on_primary_key": false,
-    "target_entity": "TDPS_MatmInformationSchemaTables",
+    "primary_key_columns": ["PK"],
+    "dedupe_key_columns": ["PK"],
+    "dedupe_order_columns": ["UPDATED_TIMESTAMP", "CREATED_TIMESTAMP"],
+    "raw_merge_on_primary_key": true,
+    "target_entity": "TDPS_MatmShpShipment",
     "target_uc_schema": "matm_mysql_raw",
     "target_file_path": "/Publix/SupplyChain/MatmMysql/Raw/",
     "target_file_format": "Delta",
@@ -294,18 +294,18 @@ Each key under `entities` is one ingestible object. Important fields:
 
 ---
 
-## 7. What ships today (sample implementation)
+## 7. What ships today
 
-Starter entities prove the path end-to-end:
+Four `default_shipment` entities:
 
-| Entity | Source | Target entity name | UC schema |
-|--------|--------|--------------------|-----------|
-| `InformationSchemaTables` | `information_schema.TABLES` (excl. system schemas) | `TDPS_MatmInformationSchemaTables` | `matm_mysql_raw` |
-| `InformationSchemaColumns` | `information_schema.COLUMNS` (daily sample) | `TDPS_MatmInformationSchemaColumns` | `matm_mysql_raw` |
+| Frequency | Entity | Source | Target entity name | PK | Watermark |
+|-----------|--------|--------|--------------------|----|-----------|
+| Hourly | `ShpShipment` | `SHP_SHIPMENT` | `TDPS_MatmShpShipment` | `PK` | `UPDATED_TIMESTAMP` |
+| Hourly | `ShpShipmentCost` | `SHP_SHIPMENT_COST` | `TDPS_MatmShpShipmentCost` | `SHIPMENT_PK` | `UPDATED_TIMESTAMP` |
+| Daily | `ShpImportReqOrder` | `SHP_IMPORT_REQ_ORDER` | `TDPS_MatmShpImportReqOrder` | `SHIPMENT_IMP_REQ_ORDER_PK` | `UPDATED_TIMESTAMP` |
+| Daily | `ShpImportReqOrderDtl` | `SHP_IMPORT_REQ_ORDER_DTL` | `TDPS_MatmShpImportReqOrderDtl` | `PK` | `UPDATED_TIMESTAMP` |
 
-Lake root: `/Publix/SupplyChain/MatmMysql/Raw/` (Transform derived by replacing `Raw` → `Transform`).
-
-These are **scaffolding / metadata** entities. Real MATM business tables are added the same way once owners pick databases and PKs.
+Lake root: `/Publix/SupplyChain/MatmMysql/Raw/` (Transform derived by replacing `Raw` → `Transform`). UC schema: `matm_mysql_raw`.
 
 ---
 
@@ -331,8 +331,7 @@ Jobs are created **paused**; enable after jar + secrets + network are validated.
 2. Copy an entity block in `mysql_extract_daily.json` (and hourly if needed).
 3. Set:
    - `jdbc.database_by_env` → that microservice DB
-   - `extract.query_by_env` → explicit column SELECT (avoid `SELECT *` for schema validation)
-   - `schema.columns` matching the SELECT list
+   - `extract.query_by_env` → prefer `SELECT *` (leave `schema.columns` empty)
    - `target.primary_key_columns` / dedupe columns
    - `target.target_entity` naming convention (`TDPS_Matm...`)
    - Incremental watermark column if hourly
@@ -355,8 +354,8 @@ Then:
 
 1. Confirm MySQL jar exists at the volume path in `targets/dev.yml`.
 2. Confirm secret scope `mysql-replica` on the workspace.
-3. Run Daily job with `entity_name=InformationSchemaTables`.
-4. Check UC: `ent_dtlk_dev.matm_mysql_raw.TDPS_MatmInformationSchemaTables` (names per env).
+3. Run Hourly job with `entity_name=ShpShipment` (or Daily with `ShpImportReqOrder`).
+4. Check UC: `ent_dtlk_dev.matm_mysql_raw.TDPS_MatmShpShipment` (names per env).
 5. Check loadtracker if using hourly/incremental.
 6. Unpause schedules when ready.
 

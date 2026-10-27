@@ -15,20 +15,22 @@ Same layout as `TDPTSXX-AzureSql-ETL` / DATALAKE-style entity pipeline:
 | Driver | `com.mysql.cj.jdbc.Driver` |
 | JDBC jar var | `MySql_Jdbc_Jar_Path` |
 
-## Sample entities
+## Entities (default_shipment)
 
-Daily config ships two metadata entities (same catalog surface as `test-excel`):
-
-- `InformationSchemaTables`
-- `InformationSchemaColumns`
+| Frequency | Entity | Source table | PK | Watermark |
+|-----------|--------|--------------|----|-----------|
+| Hourly | `ShpShipment` | `SHP_SHIPMENT` | `PK` | `UPDATED_TIMESTAMP` |
+| Hourly | `ShpShipmentCost` | `SHP_SHIPMENT_COST` | `SHIPMENT_PK` | `UPDATED_TIMESTAMP` |
+| Daily | `ShpImportReqOrder` | `SHP_IMPORT_REQ_ORDER` | `SHIPMENT_IMP_REQ_ORDER_PK` | `UPDATED_TIMESTAMP` |
+| Daily | `ShpImportReqOrderDtl` | `SHP_IMPORT_REQ_ORDER_DTL` | `PK` | `UPDATED_TIMESTAMP` |
 
 Targets land under UC schema `matm_mysql_raw` and lake path `/Publix/SupplyChain/MatmMysql/Raw/`.
 
-Add business tables by copying an entity block and setting:
+Add more tables by copying an entity block and setting:
 
 1. `jdbc.database_by_env` to the MATM microservice database
-2. `extract.query_by_env` SELECT
-3. `schema.columns` + `target.primary_key_columns`
+2. `extract.query_by_env` SELECT (prefer `SELECT *`)
+3. `target.primary_key_columns` + incremental watermark
 4. `target.target_entity` / paths
 
 ## Deploy
@@ -49,4 +51,3 @@ Azure DevOps: `azure-pipelines/azure-pipelines.yml` (same S0TDPSXX pattern as Az
 
 - `TDPTSXX-DATALAKE` — Oracle → Delta (legacy Wrapper/Runner)
 - `TDPTSXX-AzureSql-ETL` — Azure SQL → Delta (this package’s layout source)
-- `test-excel/excel-script.py` — MATM metadata enrichment notebook that uses the same MySQL host/secrets
