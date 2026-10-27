@@ -66,9 +66,18 @@
       },
       "target": {
         "write_enabled": true,
-        "primary_key_columns": ["TABLE_SCHEMA", "TABLE_NAME"],
-        "dedupe_key_columns": ["TABLE_SCHEMA", "TABLE_NAME"],
-        "dedupe_order_columns": ["UPDATE_TIME", "CREATE_TIME"],
+        "primary_key_columns": [
+          "TABLE_SCHEMA",
+          "TABLE_NAME"
+        ],
+        "dedupe_key_columns": [
+          "TABLE_SCHEMA",
+          "TABLE_NAME"
+        ],
+        "dedupe_order_columns": [
+          "UPDATE_TIME",
+          "CREATE_TIME"
+        ],
         "raw_merge_on_primary_key": false,
         "target_entity": "TDPS_MatmInformationSchemaTables",
         "target_uc_schema": "matm_mysql_raw",
@@ -164,11 +173,205 @@
       },
       "target": {
         "write_enabled": true,
-        "primary_key_columns": ["TABLE_SCHEMA", "TABLE_NAME", "COLUMN_NAME"],
-        "dedupe_key_columns": ["TABLE_SCHEMA", "TABLE_NAME", "COLUMN_NAME"],
-        "dedupe_order_columns": ["ORDINAL_POSITION"],
+        "primary_key_columns": [
+          "TABLE_SCHEMA",
+          "TABLE_NAME",
+          "COLUMN_NAME"
+        ],
+        "dedupe_key_columns": [
+          "TABLE_SCHEMA",
+          "TABLE_NAME",
+          "COLUMN_NAME"
+        ],
+        "dedupe_order_columns": [
+          "ORDINAL_POSITION"
+        ],
         "raw_merge_on_primary_key": false,
         "target_entity": "TDPS_MatmInformationSchemaColumns",
+        "target_uc_schema": "matm_mysql_raw",
+        "target_file_path": "/Publix/SupplyChain/MatmMysql/Raw/",
+        "target_file_format": "Delta",
+        "target_datalake_by_env": {
+          "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+          "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+          "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+          "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+        },
+        "secondary_datalake_by_env": {
+          "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+          "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+          "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+          "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+        },
+        "target_unity_catalog_by_env": {
+          "dev": "ent_dtlk_dev",
+          "tst": "ent_dtlk_tst",
+          "stg": "ent_dtlk_stg",
+          "prd": "ent_dtlk_prd"
+        },
+        "secondary_unity_catalog_by_env": {
+          "dev": "entc_dtlk_dev",
+          "tst": "entc_dtlk_tst",
+          "stg": "entc_dtlk_stg",
+          "prd": "entc_dtlk_prd"
+        }
+      }
+    },
+    "ShpImportReqOrder": {
+      "entity_name": "ShpImportReqOrder",
+      "jdbc": {
+        "database": "mysql",
+        "connection_source": "target_config",
+        "database_by_env": {
+          "dev": "default_shipment",
+          "tst": "default_shipment",
+          "stg": "default_shipment",
+          "prd": "default_shipment"
+        },
+        "driver": "com.mysql.cj.jdbc.Driver",
+        "options": {
+          "fetchsize": "10000"
+        }
+      },
+      "schema": {
+        "source_table": "default_shipment.SHP_IMPORT_REQ_ORDER",
+        "columns": [],
+        "_comment": "TODO: replace SELECT * and populate columns + confirm PK/watermark from information_schema"
+      },
+      "extract": {
+        "enabled": true,
+        "query_by_env": {
+          "dev": "SELECT * FROM `default_shipment`.`SHP_IMPORT_REQ_ORDER`",
+          "tst": "SELECT * FROM `default_shipment`.`SHP_IMPORT_REQ_ORDER`",
+          "stg": "SELECT * FROM `default_shipment`.`SHP_IMPORT_REQ_ORDER`",
+          "prd": "SELECT * FROM `default_shipment`.`SHP_IMPORT_REQ_ORDER`"
+        },
+        "temp_view_name": "mysql_extract_shpimportreqorder",
+        "global_temp_view_name": "mysql_extract_shpimportreqorder",
+        "validation_row_limit": 0,
+        "skip_row_count": false
+      },
+      "transform": {
+        "enabled": true,
+        "temp_view_name": "mysql_transform_shpimportreqorder",
+        "global_temp_view_name": "mysql_transform_shpimportreqorder",
+        "validation_row_limit": 0,
+        "skip_row_count": false
+      },
+      "completion": {
+        "enabled": true
+      },
+      "incremental": {
+        "enabled": false,
+        "watermark_column": "UPDATED_DTTM",
+        "uc_watermark_column": "UPDATED_DTTM",
+        "loadtracker_entity_name": "ShpImportReqOrder"
+      },
+      "target": {
+        "write_enabled": true,
+        "primary_key_columns": [
+          "IMPORT_REQ_ORDER_ID"
+        ],
+        "dedupe_key_columns": [
+          "IMPORT_REQ_ORDER_ID"
+        ],
+        "dedupe_order_columns": [
+          "UPDATED_DTTM"
+        ],
+        "raw_merge_on_primary_key": false,
+        "target_entity": "TDPS_MatmShpImportReqOrder",
+        "target_uc_schema": "matm_mysql_raw",
+        "target_file_path": "/Publix/SupplyChain/MatmMysql/Raw/",
+        "target_file_format": "Delta",
+        "target_datalake_by_env": {
+          "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+          "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+          "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+          "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+        },
+        "secondary_datalake_by_env": {
+          "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+          "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+          "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+          "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+        },
+        "target_unity_catalog_by_env": {
+          "dev": "ent_dtlk_dev",
+          "tst": "ent_dtlk_tst",
+          "stg": "ent_dtlk_stg",
+          "prd": "ent_dtlk_prd"
+        },
+        "secondary_unity_catalog_by_env": {
+          "dev": "entc_dtlk_dev",
+          "tst": "entc_dtlk_tst",
+          "stg": "entc_dtlk_stg",
+          "prd": "entc_dtlk_prd"
+        }
+      }
+    },
+    "ShpImportReqOrderDtl": {
+      "entity_name": "ShpImportReqOrderDtl",
+      "jdbc": {
+        "database": "mysql",
+        "connection_source": "target_config",
+        "database_by_env": {
+          "dev": "default_shipment",
+          "tst": "default_shipment",
+          "stg": "default_shipment",
+          "prd": "default_shipment"
+        },
+        "driver": "com.mysql.cj.jdbc.Driver",
+        "options": {
+          "fetchsize": "10000"
+        }
+      },
+      "schema": {
+        "source_table": "default_shipment.SHP_IMPORT_REQ_ORDER_DTL",
+        "columns": [],
+        "_comment": "TODO: replace SELECT * and populate columns + confirm PK/watermark from information_schema"
+      },
+      "extract": {
+        "enabled": true,
+        "query_by_env": {
+          "dev": "SELECT * FROM `default_shipment`.`SHP_IMPORT_REQ_ORDER_DTL`",
+          "tst": "SELECT * FROM `default_shipment`.`SHP_IMPORT_REQ_ORDER_DTL`",
+          "stg": "SELECT * FROM `default_shipment`.`SHP_IMPORT_REQ_ORDER_DTL`",
+          "prd": "SELECT * FROM `default_shipment`.`SHP_IMPORT_REQ_ORDER_DTL`"
+        },
+        "temp_view_name": "mysql_extract_shpimportreqorderdtl",
+        "global_temp_view_name": "mysql_extract_shpimportreqorderdtl",
+        "validation_row_limit": 0,
+        "skip_row_count": false
+      },
+      "transform": {
+        "enabled": true,
+        "temp_view_name": "mysql_transform_shpimportreqorderdtl",
+        "global_temp_view_name": "mysql_transform_shpimportreqorderdtl",
+        "validation_row_limit": 0,
+        "skip_row_count": false
+      },
+      "completion": {
+        "enabled": true
+      },
+      "incremental": {
+        "enabled": false,
+        "watermark_column": "UPDATED_DTTM",
+        "uc_watermark_column": "UPDATED_DTTM",
+        "loadtracker_entity_name": "ShpImportReqOrderDtl"
+      },
+      "target": {
+        "write_enabled": true,
+        "primary_key_columns": [
+          "IMPORT_REQ_ORDER_DTL_ID"
+        ],
+        "dedupe_key_columns": [
+          "IMPORT_REQ_ORDER_DTL_ID"
+        ],
+        "dedupe_order_columns": [
+          "UPDATED_DTTM"
+        ],
+        "raw_merge_on_primary_key": false,
+        "target_entity": "TDPS_MatmShpImportReqOrderDtl",
         "target_uc_schema": "matm_mysql_raw",
         "target_file_path": "/Publix/SupplyChain/MatmMysql/Raw/",
         "target_file_format": "Delta",

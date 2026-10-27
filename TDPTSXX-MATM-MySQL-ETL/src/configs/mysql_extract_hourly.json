@@ -1,5 +1,5 @@
 {
-  "default_entity_name": "InformationSchemaTables",
+  "default_entity_name": "ShpShipment",
   "time_grain": "HOURLY",
   "entities": {
     "InformationSchemaTables": {
@@ -66,11 +66,206 @@
       },
       "target": {
         "write_enabled": true,
-        "primary_key_columns": ["TABLE_SCHEMA", "TABLE_NAME"],
-        "dedupe_key_columns": ["TABLE_SCHEMA", "TABLE_NAME"],
-        "dedupe_order_columns": ["UPDATE_TIME", "CREATE_TIME"],
+        "primary_key_columns": [
+          "TABLE_SCHEMA",
+          "TABLE_NAME"
+        ],
+        "dedupe_key_columns": [
+          "TABLE_SCHEMA",
+          "TABLE_NAME"
+        ],
+        "dedupe_order_columns": [
+          "UPDATE_TIME",
+          "CREATE_TIME"
+        ],
         "raw_merge_on_primary_key": true,
         "target_entity": "TDPS_MatmInformationSchemaTables",
+        "target_uc_schema": "matm_mysql_raw",
+        "target_file_path": "/Publix/SupplyChain/MatmMysql/Raw/",
+        "target_file_format": "Delta",
+        "target_datalake_by_env": {
+          "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+          "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+          "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+          "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+        },
+        "secondary_datalake_by_env": {
+          "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+          "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+          "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+          "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+        },
+        "target_unity_catalog_by_env": {
+          "dev": "ent_dtlk_dev",
+          "tst": "ent_dtlk_tst",
+          "stg": "ent_dtlk_stg",
+          "prd": "ent_dtlk_prd"
+        },
+        "secondary_unity_catalog_by_env": {
+          "dev": "entc_dtlk_dev",
+          "tst": "entc_dtlk_tst",
+          "stg": "entc_dtlk_stg",
+          "prd": "entc_dtlk_prd"
+        }
+      }
+    },
+    "ShpShipment": {
+      "entity_name": "ShpShipment",
+      "jdbc": {
+        "database": "mysql",
+        "connection_source": "target_config",
+        "database_by_env": {
+          "dev": "default_shipment",
+          "tst": "default_shipment",
+          "stg": "default_shipment",
+          "prd": "default_shipment"
+        },
+        "driver": "com.mysql.cj.jdbc.Driver",
+        "options": {
+          "fetchsize": "10000"
+        }
+      },
+      "schema": {
+        "source_table": "default_shipment.SHP_SHIPMENT",
+        "columns": [],
+        "_comment": "TODO: replace SELECT * and populate columns + confirm PK/watermark from information_schema"
+      },
+      "extract": {
+        "enabled": true,
+        "query_by_env": {
+          "dev": "SELECT * FROM `default_shipment`.`SHP_SHIPMENT`",
+          "tst": "SELECT * FROM `default_shipment`.`SHP_SHIPMENT`",
+          "stg": "SELECT * FROM `default_shipment`.`SHP_SHIPMENT`",
+          "prd": "SELECT * FROM `default_shipment`.`SHP_SHIPMENT`"
+        },
+        "temp_view_name": "mysql_extract_shpshipment",
+        "global_temp_view_name": "mysql_extract_shpshipment",
+        "validation_row_limit": 0,
+        "skip_row_count": false
+      },
+      "transform": {
+        "enabled": true,
+        "temp_view_name": "mysql_transform_shpshipment",
+        "global_temp_view_name": "mysql_transform_shpshipment",
+        "validation_row_limit": 0,
+        "skip_row_count": false
+      },
+      "completion": {
+        "enabled": true
+      },
+      "incremental": {
+        "enabled": true,
+        "watermark_column": "UPDATED_DTTM",
+        "uc_watermark_column": "UPDATED_DTTM",
+        "loadtracker_entity_name": "ShpShipment"
+      },
+      "target": {
+        "write_enabled": true,
+        "primary_key_columns": [
+          "SHIPMENT_ID"
+        ],
+        "dedupe_key_columns": [
+          "SHIPMENT_ID"
+        ],
+        "dedupe_order_columns": [
+          "UPDATED_DTTM",
+          "CREATED_DTTM"
+        ],
+        "raw_merge_on_primary_key": true,
+        "target_entity": "TDPS_MatmShpShipment",
+        "target_uc_schema": "matm_mysql_raw",
+        "target_file_path": "/Publix/SupplyChain/MatmMysql/Raw/",
+        "target_file_format": "Delta",
+        "target_datalake_by_env": {
+          "dev": "abfss://publixdev@cutdpbxdtlk01.dfs.core.windows.net",
+          "tst": "abfss://publixtst@cuttdtlkpbx01.dfs.core.windows.net",
+          "stg": "abfss://publixstg@cutsdtlkpbx01.dfs.core.windows.net",
+          "prd": "abfss://publixprd@cutpdtlkpbx01.dfs.core.windows.net"
+        },
+        "secondary_datalake_by_env": {
+          "dev": "abfss://publixdev@cucddtlkpbx01.dfs.core.windows.net",
+          "tst": "abfss://publixtst@cuctdtlkpbx01.dfs.core.windows.net",
+          "stg": "abfss://publixstg@cucsdtlkpbx01.dfs.core.windows.net",
+          "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
+        },
+        "target_unity_catalog_by_env": {
+          "dev": "ent_dtlk_dev",
+          "tst": "ent_dtlk_tst",
+          "stg": "ent_dtlk_stg",
+          "prd": "ent_dtlk_prd"
+        },
+        "secondary_unity_catalog_by_env": {
+          "dev": "entc_dtlk_dev",
+          "tst": "entc_dtlk_tst",
+          "stg": "entc_dtlk_stg",
+          "prd": "entc_dtlk_prd"
+        }
+      }
+    },
+    "ShpShipmentCost": {
+      "entity_name": "ShpShipmentCost",
+      "jdbc": {
+        "database": "mysql",
+        "connection_source": "target_config",
+        "database_by_env": {
+          "dev": "default_shipment",
+          "tst": "default_shipment",
+          "stg": "default_shipment",
+          "prd": "default_shipment"
+        },
+        "driver": "com.mysql.cj.jdbc.Driver",
+        "options": {
+          "fetchsize": "10000"
+        }
+      },
+      "schema": {
+        "source_table": "default_shipment.SHP_SHIPMENT_COST",
+        "columns": [],
+        "_comment": "TODO: replace SELECT * and populate columns + confirm PK/watermark from information_schema"
+      },
+      "extract": {
+        "enabled": true,
+        "query_by_env": {
+          "dev": "SELECT * FROM `default_shipment`.`SHP_SHIPMENT_COST`",
+          "tst": "SELECT * FROM `default_shipment`.`SHP_SHIPMENT_COST`",
+          "stg": "SELECT * FROM `default_shipment`.`SHP_SHIPMENT_COST`",
+          "prd": "SELECT * FROM `default_shipment`.`SHP_SHIPMENT_COST`"
+        },
+        "temp_view_name": "mysql_extract_shpshipmentcost",
+        "global_temp_view_name": "mysql_extract_shpshipmentcost",
+        "validation_row_limit": 0,
+        "skip_row_count": false
+      },
+      "transform": {
+        "enabled": true,
+        "temp_view_name": "mysql_transform_shpshipmentcost",
+        "global_temp_view_name": "mysql_transform_shpshipmentcost",
+        "validation_row_limit": 0,
+        "skip_row_count": false
+      },
+      "completion": {
+        "enabled": true
+      },
+      "incremental": {
+        "enabled": true,
+        "watermark_column": "UPDATED_DTTM",
+        "uc_watermark_column": "UPDATED_DTTM",
+        "loadtracker_entity_name": "ShpShipmentCost"
+      },
+      "target": {
+        "write_enabled": true,
+        "primary_key_columns": [
+          "SHIPMENT_COST_ID"
+        ],
+        "dedupe_key_columns": [
+          "SHIPMENT_COST_ID"
+        ],
+        "dedupe_order_columns": [
+          "UPDATED_DTTM",
+          "CREATED_DTTM"
+        ],
+        "raw_merge_on_primary_key": true,
+        "target_entity": "TDPS_MatmShpShipmentCost",
         "target_uc_schema": "matm_mysql_raw",
         "target_file_path": "/Publix/SupplyChain/MatmMysql/Raw/",
         "target_file_format": "Delta",
