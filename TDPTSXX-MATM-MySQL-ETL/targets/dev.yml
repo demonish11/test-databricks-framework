@@ -2,10 +2,10 @@ targets:
   DEV_East:
     default: true
     workspace:
-      host: https://adb-3618393276190872.12.azuredatabricks.net/
+      host: https://adb-7405613895447829.9.azuredatabricks.net
       root_path: /Workspace/Shared/S0TDPSXX-MATM-MySQL-ETL
     run_as:
-      service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+      service_principal_name: 0ae5dd76-e295-4650-843c-b18d5ca6d3ec
     variables:
       Databricks_Env: dev
       MySql_Jdbc_Jar_Path: /Volumes/ent_dtlk_dev/volumes/jdbc-jars/mysql-connector-j-8.3.0.jar
@@ -19,23 +19,23 @@ targets:
       jobs:
         S0TDPSXX_MatmMysql_ETL_Hourly:
           permissions:
-            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+            - service_principal_name: 0ae5dd76-e295-4650-843c-b18d5ca6d3ec
               level: CAN_MANAGE
-            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0MANDAT_DEVELOPER_01_DEV
               level: CAN_MANAGE
         S0TDPSXX_MatmMysql_ETL_Daily:
           permissions:
-            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+            - service_principal_name: 0ae5dd76-e295-4650-843c-b18d5ca6d3ec
               level: CAN_MANAGE
-            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0MANDAT_DEVELOPER_01_DEV
               level: CAN_MANAGE
 
   DEV_Central:
     workspace:
-      host: https://adb-840646084492194.14.azuredatabricks.net/
+      host: https://adb-7405613652537262.2.azuredatabricks.net
       root_path: /Workspace/Shared/S0TDPSXX-MATM-MySQL-ETL
     run_as:
-      service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+      service_principal_name: 0ae5dd76-e295-4650-843c-b18d5ca6d3ec
     variables:
       Databricks_Env: dev
       MySql_Jdbc_Jar_Path: /Volumes/entc_dtlk_dev/volumes/jdbc-jars/mysql-connector-j-8.3.0.jar
@@ -49,13 +49,13 @@ targets:
       jobs:
         S0TDPSXX_MatmMysql_ETL_Hourly:
           permissions:
-            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+            - service_principal_name: 0ae5dd76-e295-4650-843c-b18d5ca6d3ec
               level: CAN_MANAGE
-            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0MANDAT_DEVELOPER_01_DEV
               level: CAN_MANAGE
         S0TDPSXX_MatmMysql_ETL_Daily:
           permissions:
-            - service_principal_name: c96a8a9d-9d9f-4d55-84b2-844d304dd463
+            - service_principal_name: 0ae5dd76-e295-4650-843c-b18d5ca6d3ec
               level: CAN_MANAGE
-            - group_name: AAD_DATABRICKS_WORKSPACE_S0TDPSXX_DEVELOPER_01_DEV
+            - group_name: AAD_DATABRICKS_WORKSPACE_S0MANDAT_DEVELOPER_01_DEV
               level: CAN_MANAGE
