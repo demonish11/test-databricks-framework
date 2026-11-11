@@ -1,7 +1,7 @@
 resources:
   jobs:
-    S0TDPSXX_MatmMysql_ETL_Hourly:
-      name: S0TDPSXX MATM MySQL ETL Hourly
+    S0MANDAT_MatmMysql_ETL_Hourly:
+      name: S0MANDAT MATM MySQL ETL Hourly
       schedule:
         quartz_cron_expression: ${var.Hourly_Cron_Schedule}
         timezone_id: ${var.Job_Timezone}
@@ -51,8 +51,8 @@ resources:
         enabled: true
       timeout_seconds: 86400
 
-    S0TDPSXX_MatmMysql_ETL_Daily:
-      name: S0TDPSXX MATM MySQL ETL Daily
+    S0MANDAT_MatmMysql_ETL_Daily:
+      name: S0MANDAT MATM MySQL ETL Daily
       schedule:
         quartz_cron_expression: ${var.Daily_Cron_Schedule}
         timezone_id: ${var.Job_Timezone}

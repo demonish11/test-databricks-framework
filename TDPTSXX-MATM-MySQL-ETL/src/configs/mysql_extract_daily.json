@@ -64,7 +64,7 @@
           "CREATED_TIMESTAMP"
         ],
         "raw_merge_on_primary_key": false,
-        "target_entity": "TDPS_MatmShpImportReqOrder",
+        "target_entity": "S0MANDAT_MatmShpImportReqOrder",
         "target_uc_schema": "matm_mysql_raw",
         "target_file_path": "/Publix/SupplyChain/MatmMysql/Raw/",
         "target_file_format": "Delta",
@@ -156,7 +156,7 @@
           "CREATED_TIMESTAMP"
         ],
         "raw_merge_on_primary_key": false,
-        "target_entity": "TDPS_MatmShpImportReqOrderDtl",
+        "target_entity": "S0MANDAT_MatmShpImportReqOrderDtl",
         "target_uc_schema": "matm_mysql_raw",
         "target_file_path": "/Publix/SupplyChain/MatmMysql/Raw/",
         "target_file_format": "Delta",

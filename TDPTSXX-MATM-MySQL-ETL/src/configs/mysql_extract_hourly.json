@@ -64,7 +64,7 @@
           "CREATED_TIMESTAMP"
         ],
         "raw_merge_on_primary_key": true,
-        "target_entity": "TDPS_MatmShpShipment",
+        "target_entity": "S0MANDAT_MatmShpShipment",
         "target_uc_schema": "matm_mysql_raw",
         "target_file_path": "/Publix/SupplyChain/MatmMysql/Raw/",
         "target_file_format": "Delta",
@@ -156,7 +156,7 @@
           "CREATED_TIMESTAMP"
         ],
         "raw_merge_on_primary_key": true,
-        "target_entity": "TDPS_MatmShpShipmentCost",
+        "target_entity": "S0MANDAT_MatmShpShipmentCost",
         "target_uc_schema": "matm_mysql_raw",
         "target_file_path": "/Publix/SupplyChain/MatmMysql/Raw/",
         "target_file_format": "Delta",

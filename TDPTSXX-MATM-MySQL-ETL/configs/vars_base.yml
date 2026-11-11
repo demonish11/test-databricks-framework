@@ -16,7 +16,7 @@ variables:
     description: Schema for load tracking objects.
 
   Loadtracker_Target_Table:
-    default: load_tracking_s0transportxxx
+    default: load_tracking_s0mandat
     description: Table used to persist load tracking watermarks.
 
   Job_Timezone:
