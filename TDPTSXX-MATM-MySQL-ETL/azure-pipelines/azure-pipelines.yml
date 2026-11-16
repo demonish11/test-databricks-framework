@@ -16,6 +16,7 @@ stages:
       pythonVersion: 3.x
       cliVersion: v0.297.2
       databricksHost: https://adb-7405613895447829.9.azuredatabricks.net
+      repoDABsPath: MATM-MYSQL
   - template: templates/deploy_template.yml
     parameters:
       publixEnvironment: DEV_Central
@@ -26,6 +27,7 @@ stages:
       pythonVersion: 3.x
       cliVersion: v0.297.2
       databricksHost: https://adb-7405613652537262.2.azuredatabricks.net
+      repoDABsPath: MATM-MYSQL
 
 - stage: Tst
   displayName: Tst
@@ -41,6 +43,7 @@ stages:
       pythonVersion: 3.x
       cliVersion: v0.297.2
       databricksHost: https://adb-3674853172059167.7.azuredatabricks.net/
+      repoDABsPath: MATM-MYSQL
   - template: templates/deploy_template.yml
     parameters:
       publixEnvironment: TST_Central
@@ -51,5 +54,6 @@ stages:
       pythonVersion: 3.x
       cliVersion: v0.297.2
       databricksHost: https://adb-1718286213798553.13.azuredatabricks.net/
+      repoDABsPath: MATM-MYSQL
 
 # Stg/Prd stages can be enabled when targets/stg.yml and targets/prd.yml are populated.
