@@ -9,7 +9,7 @@ dbutils.widgets.text("entity_name", "")
 
 # COMMAND ----------
 
-# MAGIC %run ./utils/config_utils.py
+# MAGIC %run ./utils/config_utils
 
 # COMMAND ----------
 
