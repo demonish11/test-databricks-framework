@@ -8,7 +8,7 @@ targets:
       service_principal_name: 0ae5dd76-e295-4650-843c-b18d5ca6d3ec
     variables:
       Databricks_Env: dev
-      MySql_Jdbc_Jar_Path: /Volumes/ent_dtlk_dev/volumes/jdbc-jars/mysql-connector-j-8.3.0.jar
+      MySql_Jdbc_Jar_Path: /Volumes/ent_dtlk_dev/volumes/jdbc-jars/mysql-connector-j-9.7.0.jar
       Loadtracker_Target_Catalog: ent_dtlk_dev
       Loadtracker_Target_Schema: monitoring
       Loadtracker_Target_Table: load_tracking_s0mandat
@@ -38,7 +38,7 @@ targets:
       service_principal_name: 0ae5dd76-e295-4650-843c-b18d5ca6d3ec
     variables:
       Databricks_Env: dev
-      MySql_Jdbc_Jar_Path: /Volumes/entc_dtlk_dev/volumes/jdbc-jars/mysql-connector-j-8.3.0.jar
+      MySql_Jdbc_Jar_Path: /Volumes/entc_dtlk_dev/volumes/jdbc-jars/mysql-connector-j-9.7.0.jar
       Loadtracker_Target_Catalog: entc_dtlk_dev
       Loadtracker_Target_Schema: monitoring
       Loadtracker_Target_Table: load_tracking_s0mandat
