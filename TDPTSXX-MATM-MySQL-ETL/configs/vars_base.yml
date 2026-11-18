@@ -4,11 +4,11 @@ variables:
     description: Deployment environment code (dev/tst/stg/prd).
 
   MySql_Jdbc_Jar_Path:
-    default: /Volumes/ent_dtlk_dev/volumes/jdbc-jars/mysql-connector-j-9.7.0.jar
+    default: /Volumes/cutddbwsmndt01/volumes/jdbc-jars/mysql-connector-j-9.7.0.jar
     description: MySQL JDBC jar path for the current workspace.
 
   Loadtracker_Target_Catalog:
-    default: ent_dtlk_dev
+    default: cutddbwsmndt01
     description: Unity Catalog catalog for load tracking.
 
   Loadtracker_Target_Schema:

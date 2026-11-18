@@ -81,13 +81,13 @@
           "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
         },
         "target_unity_catalog_by_env": {
-          "dev": "ent_dtlk_dev",
+          "dev": "cutddbwsmndt01",
           "tst": "ent_dtlk_tst",
           "stg": "ent_dtlk_stg",
           "prd": "ent_dtlk_prd"
         },
         "secondary_unity_catalog_by_env": {
-          "dev": "entc_dtlk_dev",
+          "dev": "cutddbwsmndt01",
           "tst": "entc_dtlk_tst",
           "stg": "entc_dtlk_stg",
           "prd": "entc_dtlk_prd"
@@ -173,13 +173,13 @@
           "prd": "abfss://publixprd@cucpdtlkpbx01.dfs.core.windows.net"
         },
         "target_unity_catalog_by_env": {
-          "dev": "ent_dtlk_dev",
+          "dev": "cutddbwsmndt01",
           "tst": "ent_dtlk_tst",
           "stg": "ent_dtlk_stg",
           "prd": "ent_dtlk_prd"
         },
         "secondary_unity_catalog_by_env": {
-          "dev": "entc_dtlk_dev",
+          "dev": "cutddbwsmndt01",
           "tst": "entc_dtlk_tst",
           "stg": "entc_dtlk_stg",
           "prd": "entc_dtlk_prd"

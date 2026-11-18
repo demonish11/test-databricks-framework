@@ -108,18 +108,14 @@ def does_table_exist(table_fqn):
 
 
 def ensure_schema(catalog_schema):
-    # Verify catalog.schema exists; do not CREATE (job principal usually lacks catalog CREATE).
+    # Create catalog.schema when missing (workspace catalogs like cutddbwsmndt01 allow this).
     parts = str(catalog_schema).strip().split(".", 1)
     if len(parts) != 2 or not parts[0] or not parts[1]:
         raise ValueError(f"Expected 'catalog.schema', got: {catalog_schema!r}")
 
     catalog, schema = parts
-    matching = spark.sql(f"SHOW SCHEMAS IN {catalog} LIKE '{schema}'").collect()
-    if not matching:
-        raise ValueError(
-            f"Schema '{catalog}.{schema}' does not exist. "
-            "Ask a UC admin to create it; this job will not CREATE SCHEMA."
-        )
+    spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
+    print({"stage": "ensure_schema", "catalog_schema": f"{catalog}.{schema}"})
 
 
 def dedupe_dataframe(dataframe, dedupe_key_columns, dedupe_order_columns=None):
