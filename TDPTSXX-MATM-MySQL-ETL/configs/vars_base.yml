@@ -4,7 +4,7 @@ variables:
     description: Deployment environment code (dev/tst/stg/prd).
 
   MySql_Jdbc_Jar_Path:
-    default: /Volumes/cutddbwsmndt01/volumes/jdbc-jars/mysql-connector-j-9.7.0.jar
+    default: /Volumes/cutddbwsmndt01/default/jdbc-jars/mysql-connector-j-9.7.0.jar
     description: MySQL JDBC jar path for the current workspace.
 
   Loadtracker_Target_Catalog:
